@@ -79,6 +79,7 @@ HALI=$T/Drivers/STM32F1xx_HAL_Driver/Inc
 HALS=$T/Drivers/STM32F1xx_HAL_Driver/Src
 cp $SRC/STM32F1xx_HAL_Driver/Inc/{stm32f1xx_hal.h,stm32f1xx_hal_def.h,stm32f1xx_hal_cortex.h,stm32f1xx_hal_dma.h,stm32f1xx_hal_dma_ex.h,stm32f1xx_hal_flash.h,stm32f1xx_hal_flash_ex.h,stm32f1xx_hal_gpio.h,stm32f1xx_hal_gpio_ex.h,stm32f1xx_hal_rcc.h,stm32f1xx_hal_rcc_ex.h,stm32f1xx_hal_tim.h,stm32f1xx_hal_tim_ex.h} $HALI/
 cp $SRC/STM32F1xx_HAL_Driver/Src/{stm32f1xx_hal.c,stm32f1xx_hal_cortex.c,stm32f1xx_hal_dma.c,stm32f1xx_hal_flash.c,stm32f1xx_hal_flash_ex.c,stm32f1xx_hal_gpio.c,stm32f1xx_hal_rcc.c,stm32f1xx_hal_rcc_ex.c,stm32f1xx_hal_tim.c,stm32f1xx_hal_tim_ex.c} $HALS/
+cp -r $SRC/STM32F1xx_HAL_Driver/Inc/Legacy $HALI/   # hal_def.h 依赖 Legacy/stm32_hal_legacy.h（裁剪时极易漏）
 ```
 
 - [x] **Step 3: 写链接脚本 `template/STM32F103C8Tx_FLASH.ld`（全文）**
@@ -218,7 +219,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: Task 1 的 HAL/启动/ld。
 - Produces: `firmware` 构建目标（产物 `build/firmware.elf/.bin/.hex`）；`user_setup()` / `user_loop()` 约定；`Delay_ms(uint32_t)`；`env.sh`/`env.bat` 供后续所有任务拼 PATH。
 
-- [ ] **Step 1: 写工具链文件 `template/cmake/arm-gcc-toolchain.cmake`（全文）**
+- [x] **Step 1: 写工具链文件 `template/cmake/arm-gcc-toolchain.cmake`（全文）**
 
 ```cmake
 # 只用 CubeCLT 自带的 arm-none-eabi 工具链（环境变量 CUBECLT 可覆盖安装位置）
@@ -242,7 +243,7 @@ if(NOT CMAKE_C_COMPILER)
 endif()
 ```
 
-- [ ] **Step 2: 写 `template/CMakeLists.txt`（全文）**
+- [x] **Step 2: 写 `template/CMakeLists.txt`（全文）**
 
 ```cmake
 cmake_minimum_required(VERSION 3.22)
@@ -312,7 +313,7 @@ add_custom_command(TARGET firmware POST_BUILD
 )
 ```
 
-- [ ] **Step 3: 写 `template/Core/Inc/stm32f1xx_hal_conf.h`（全文）**
+- [x] **Step 3: 写 `template/Core/Inc/stm32f1xx_hal_conf.h`（全文）**
 
 ```c
 #ifndef __STM32F1xx_HAL_CONF_H
@@ -332,6 +333,9 @@ extern "C" {
 
 #if !defined  (HSE_VALUE)
   #define HSE_VALUE               8000000U
+#endif
+#if !defined  (HSI_VALUE)
+  #define HSI_VALUE               8000000U
 #endif
 #if !defined  (HSE_STARTUP_TIMEOUT)
   #define HSE_STARTUP_TIMEOUT     100U
@@ -384,7 +388,7 @@ extern "C" {
 #endif /* __STM32F1xx_HAL_CONF_H */
 ```
 
-- [ ] **Step 4: 写 `template/Core/Inc/main.h`（全文）**
+- [x] **Step 4: 写 `template/Core/Inc/main.h`（全文）**
 
 ```c
 #ifndef __MAIN_H
@@ -406,7 +410,7 @@ void SystemClock_Config(void);
 #endif /* __MAIN_H */
 ```
 
-- [ ] **Step 5: 写 `template/Core/Src/main.c`（全文）**
+- [x] **Step 5: 写 `template/Core/Src/main.c`（全文）**
 
 ```c
 /* main.c — 固定框架，不随积木生成变化 */
@@ -465,7 +469,7 @@ void Error_Handler(void)
 }
 ```
 
-- [ ] **Step 6: 写 `template/Core/Src/stm32f1xx_hal_msp.c`（全文）**
+- [x] **Step 6: 写 `template/Core/Src/stm32f1xx_hal_msp.c`（全文）**
 
 ```c
 /* HAL 的 MspInit 回调：本工程外设初始化全部由 BSP 驱动自理，这里保持空实现 */
@@ -486,7 +490,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
 }
 ```
 
-- [ ] **Step 7: 写 `template/Core/Inc/user_app.h` 与 `template/Core/Src/user_app.c`（全文）**
+- [x] **Step 7: 写 `template/Core/Inc/user_app.h` 与 `template/Core/Src/user_app.c`（全文）**
 
 `user_app.h`：
 
@@ -515,7 +519,7 @@ void Delay_ms(uint32_t ms)
 }
 ```
 
-- [ ] **Step 8: 写空的 `template/Core/Src/user_code.c`（全文）**
+- [x] **Step 8: 写空的 `template/Core/Src/user_code.c`（全文）**
 
 ```c
 /* user_code.c — 由积木生成器覆盖（M1 阶段先手写冒烟版） */
@@ -530,7 +534,7 @@ void user_loop(void)
 }
 ```
 
-- [ ] **Step 9: 写 `tools/env.sh` 和 `template/env.bat`（全文）**
+- [x] **Step 9: 写 `tools/env.sh` 和 `template/env.bat`（全文）**
 
 `tools/env.sh`（在 Git Bash 里 `source tools/env.sh` 后所有命令可用）：
 
@@ -548,7 +552,7 @@ if not defined CUBECLT set CUBECLT=D:\STM32CubeCLT_1.18.0
 set PATH=%CUBECLT%\CMake\bin;%CUBECLT%\Ninja;%CUBECLT%\GNU-tools-for-STM32\bin;%CUBECLT%\STM32CubeProgrammer\bin;%PATH%
 ```
 
-- [ ] **Step 10: 配置 + 编译（期望：一次通过）**
+- [x] **Step 10: 配置 + 编译（期望：一次通过）**
 
 ```bash
 cd "F:/kakuns开源项目/stm32-blocks/template"
@@ -559,7 +563,9 @@ cmake --build build
 
 Expected: `[10/10] Linking C executable firmware.elf`，末尾 `arm-none-eabi-size` 输出 text 约 4–8KB，`Memory region Used Size Region Size` 两行。若报缺 HAL 模块符号（例如 `HAL_FLASH_...` 未定义），把缺的模块加进 `stm32f1xx_hal_conf.h` 的 `#define` 与 `CMakeLists.txt` 的 `HAL_SOURCES` 后重编。
 
-- [ ] **Step 11: 真板烧录（需要用户把 ST-Link 接上、板子通电）**
+**执行记录（2026-10-03）**：编译前修了两处裁剪遗漏——① 缺 `Inc/Legacy/stm32_hal_legacy.h`（已加入 Step 2 复制清单）；② `hal_conf.h` 缺 `HSI_VALUE` 定义（已加入 Step 3 清单）。修后一次通过：`[16/16] Linking C executable firmware`，FLASH 3392B / 64K（5.18%）、RAM 1584B / 20K（7.73%）；链接期 newlib `_close/_lseek/_read/_write not implemented` 与 RWX 段警告为标准输出，可忽略。
+
+- [ ] **Step 11: 真板烧录（待用户接板；2026-10-03 编译已过，仅差烧录观察）**
 
 ```bash
 STM32_Programmer_CLI -c port=SWD -w build/firmware.elf -v -rst
@@ -567,7 +573,7 @@ STM32_Programmer_CLI -c port=SWD -w build/firmware.elf -v -rst
 
 Expected: 输出含 `Device ID : 0x410`（F103 medium-density）、`Download verified successfully`。此时板子无可见现象（空 loop），属正常。
 
-- [ ] **Step 12: Commit**
+- [x] **Step 12: Commit**
 
 ```bash
 git add template tools && git commit -m "feat: CMake+Ninja 构建系统与最小 HAL 工程，编译烧录打通

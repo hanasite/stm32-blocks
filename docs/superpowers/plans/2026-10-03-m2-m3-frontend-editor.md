@@ -567,7 +567,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 Validate.check(project) // -> { errors: [ {code:"PIN_CONFLICT"|"BAD_NAME"|"DUP_NAME", message:"中文说明", objectIds:[...]} ] }
 ```
 
-- [ ] **Step 1: 写失败测试 `tests/validate.test.js`（全文）**
+- [x] **Step 1: 写失败测试 `tests/validate.test.js`（全文）**
 
 ```js
 const test = require("node:test");
@@ -615,7 +615,7 @@ test("名字非法与重名报错", () => {
 
 - [ ] **Step 2: 跑测试看失败** → `node --test tests/validate.test.js`，Expected: FAIL
 
-- [ ] **Step 3: 实现 `web/js/validate.js`（全文）**
+- [x] **Step 3: 实现 `web/js/validate.js`（全文）**（DUP 检测改为独立 if，已同步上方清单）
 
 ```js
 (function (root, factory) {
@@ -637,7 +637,8 @@ test("名字非法与重名报错", () => {
     project.objects.forEach(function (o) {
       if (!NAME_RE.test(o.name)) {
         errors.push({ code: "BAD_NAME", message: "对象名 \"" + o.name + "\" 只能用字母/数字/下划线，字母开头", objectIds: [o.id] });
-      } else if (seen[o.name]) {
+      }
+      if (seen[o.name]) {
         errors.push({ code: "DUP_NAME", message: "对象名重复：" + o.name, objectIds: [seen[o.name], o.id] });
       } else {
         seen[o.name] = o.id;
@@ -669,9 +670,9 @@ test("名字非法与重名报错", () => {
 });
 ```
 
-- [ ] **Step 4: 跑测试到全绿** → `node --test tests/validate.test.js`，Expected: PASS ×4
+- [x] **Step 4: 跑测试到全绿**（2026-10-03：全量 `node --test` PASS ×14）
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web/js/validate.js tests/validate.test.js && git commit -m "feat: 校验模块 validate.js（引脚冲突/名字规则）

@@ -73,6 +73,10 @@
           if (act.paramType === "intref") {
             var varObj = node.varId ? Model.findObject(project, node.varId) : null;
             map[act.param] = varObj ? varObj.name : "0";   /* 缺变量时给 0，validate 会拦截 */
+          } else if (act.paramType === "numref") {
+            var refObj = node.varId ? Model.findObject(project, node.varId) : null;
+            map[act.param] = refObj ? refObj.name
+              : (node.value !== undefined ? node.value : act.defaultParam);
           } else {
             map[act.param] = node.value !== undefined ? node.value : act.defaultParam;
           }

@@ -51,6 +51,7 @@ test("红外与 OLED：引脚映射、动作定义与接线提示", () => {
   const sv = Catalog.get("oled").actions.find((a) => a.id === "showvar");
   assert.equal(sv.paramType, "intref");
   const mq = Catalog.get("oled").actions.find((a) => a.id === "marquee");
+  assert.equal(mq.paramType, "numref");   // 固定数值或变量
   assert.equal(mq.min, 0);
   assert.equal(mq.max, 100);
   // 按键/LED 的电平选项带接线提示（另一端接什么）

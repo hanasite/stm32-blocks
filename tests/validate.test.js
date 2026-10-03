@@ -70,3 +70,16 @@ test("「显示变量」积木未选整数对象报错，选中后通过", () =>
   p.loop[0].varId = cnt.id;
   assert.deepEqual(Validate.check(p).errors, []);
 });
+
+test("跑马灯：固定数值合法；选中的变量消失（悬空 varId）报错", () => {
+  const p = Model.newProject("t");
+  const oled = Model.addObject(p, "oled", {});
+  const n = Model.nodeAction(oled.id, "marquee", 40);
+  p.loop.push(n);
+  assert.deepEqual(Validate.check(p).errors, []);   // 固定数值模式
+  n.varId = "o99";                                   // 悬空引用
+  const codes = Validate.check(p).errors.map((x) => x.code);
+  assert.ok(codes.includes("MISSING_VAR"));
+  delete n.varId;
+  assert.deepEqual(Validate.check(p).errors, []);
+});

@@ -130,7 +130,7 @@
       var a = Catalog.get(obj.type).actions.filter(function (x) { return x.id === self.value; })[0];
       node.action = a.id;
       if (a.param && a.paramType !== "intref") { node.value = a.defaultParam; } else { delete node.value; }
-      if (a.paramType !== "intref") { delete node.varId; }
+      if (a.paramType !== "intref" && a.paramType !== "numref") { delete node.varId; }
       (opts.rerender || noop)();
     };
     root.appendChild(actSel);
@@ -151,6 +151,29 @@
             (opts.quick || opts.rerender || noop)();
           };
           root.appendChild(varSel);
+        }
+      } else if (act.paramType === "numref") {
+        /* 数值或变量二选一：先选「固定数值」或某个整数对象 */
+        var ints2 = project.objects.filter(function (o) { return o.type === "int"; });
+        if (node.varId && !ints2.some(function (o) { return o.id === node.varId; })) { delete node.varId; }
+        var modeOpts = [{ v: "", label: "固定数值" }].concat(ints2.map(function (o) { return { v: o.id, label: o.name }; }));
+        var modeSel = selectOf(modeOpts, node.varId || "");
+        modeSel.onchange = function () {
+          if (this.value) { node.varId = this.value; } else { delete node.varId; }
+          (opts.rerender || noop)();
+        };
+        root.appendChild(modeSel);
+        if (!node.varId) {
+          var numM = el("input");
+          numM.type = "number";
+          if (act.min !== undefined) { numM.min = act.min; }
+          if (act.max !== undefined) { numM.max = act.max; }
+          numM.value = node.value !== undefined ? node.value : act.defaultParam;
+          numM.oninput = function () {
+            node.value = Number(this.value === "" ? 0 : this.value);
+            (opts.quick || opts.rerender || noop)();
+          };
+          root.appendChild(numM);
         }
       } else {
         var num = el("input");

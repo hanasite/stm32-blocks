@@ -99,9 +99,12 @@ test("红外 + OLED 生成代码（显示变量取对象名、跑马灯带参数
   const cnt = Object.assign(Model.addObject(p, "int", { init: 0 }), { id: "o3", name: "count1" });
   const showVar = Model.nodeAction(oled.id, "showvar");
   showVar.varId = cnt.id;
+  const marqueeVar = Model.nodeAction(oled.id, "marquee", 0);
+  marqueeVar.varId = cnt.id;
   p.loop.push(Model.nodeIf(Model.condState(ir.id, "detected"), [
     Model.nodeAction(oled.id, "showyes"),
-    showVar
+    showVar,
+    marqueeVar
   ], [
     Model.nodeAction(oled.id, "showno"),
     Model.nodeAction(oled.id, "marquee", 60)
@@ -118,6 +121,7 @@ test("红外 + OLED 生成代码（显示变量取对象名、跑马灯带参数
   assert.ok(code.includes("if (Ir_IsTriggered(&ir1)) {"));
   assert.ok(code.includes('Oled_ShowText(&oled1, "YES");'));
   assert.ok(code.includes("Oled_ShowInt(&oled1, count1);"));
+  assert.ok(code.includes("Oled_Marquee(&oled1, count1);"));   // 变量驱动进度
   assert.ok(code.includes('Oled_ShowText(&oled1, "NO");'));
   assert.ok(code.includes("Oled_Marquee(&oled1, 60);"));
 });

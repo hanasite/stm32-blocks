@@ -54,11 +54,15 @@
         var obj = project.objects.filter(function (o) { return o.id === node.objectId; })[0];
         if (!obj) { return; }
         var act = Catalog.get(obj.type).actions.filter(function (a) { return a.id === node.action; })[0];
-        if (!act || act.paramType !== "intref") { return; }
+        if (!act) { return; }
         var varOk = node.varId && project.objects.some(function (o) { return o.id === node.varId && o.type === "int"; });
-        if (!varOk) {
+        if (act.paramType === "intref" && !varOk) {
           errors.push({ code: "MISSING_VAR",
                         message: "「" + obj.name + "」的「" + act.label + "」积木还没选整数对象",
+                        objectIds: [obj.id] });
+        } else if (act.paramType === "numref" && node.varId && !varOk) {
+          errors.push({ code: "MISSING_VAR",
+                        message: "「" + obj.name + "」的「" + act.label + "」积木选的变量不存在了，请重新选一个",
                         objectIds: [obj.id] });
         }
       });

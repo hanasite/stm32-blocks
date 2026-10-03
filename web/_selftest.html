@@ -350,6 +350,42 @@ window.addEventListener("DOMContentLoaded", function () {
       document.getElementById("dlg-ok").click();
       rec("dialog-oled-add", document.getElementById("code-view").textContent.indexOf("Oled_Init(&oled9") >= 0,
           "objs=" + project.objects.length);
+
+      // 跑马灯进度：整数对象 + 拖动作块切到「跑马灯」，验证 固定数值/变量 两种模式
+      document.getElementById("btn-add-object").click();
+      var intBtn2 = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "整数"; })[0];
+      intBtn2.click();
+      document.getElementById("dlg-name").value = "count9";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-int-add", document.querySelectorAll("#object-list .obj-card").length === project.objects.length
+          && project.objects.filter(function (o) { return o.name === "count9"; }).length === 1);
+      var actPal2 = document.querySelector('[data-palette="action"]');
+      var srQ = document.getElementById("loop-slot").getBoundingClientRect();
+      var qx = srQ.left + 60;
+      cdrag(actPal2, qx, srQ.bottom - 10, [[qx, srQ.bottom - 40], [qx, srQ.bottom - 10]]);
+      var oledObj9 = project.objects.filter(function (o) { return o.name === "oled9"; })[0];
+      var selsA = document.querySelectorAll("#loop-slot > .blk:last-child select");
+      selsA[0].value = oledObj9.id;
+      selsA[0].dispatchEvent(new Event("change", { bubbles: true }));
+      selsA = document.querySelectorAll("#loop-slot > .blk:last-child select");
+      selsA[1].value = "marquee";
+      selsA[1].dispatchEvent(new Event("change", { bubbles: true }));
+      var marqueeInput = document.querySelector("#loop-slot > .blk:last-child input[type='number']");
+      rec("edit-marquee-fixed", !!marqueeInput
+          && document.getElementById("code-view").textContent.indexOf("Oled_Marquee(&oled9, 0)") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Oled_Marquee[^;]*/) || [""])[0]);
+      marqueeInput.value = "40";
+      marqueeInput.dispatchEvent(new Event("input", { bubbles: true }));
+      rec("edit-marquee-fixed-40", document.getElementById("code-view").textContent.indexOf("Oled_Marquee(&oled9, 40)") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Oled_Marquee[^;]*/) || [""])[0]);
+      var modeSel = document.querySelectorAll("#loop-slot > .blk:last-child select")[2];
+      modeSel.value = project.objects.filter(function (o) { return o.name === "count9"; })[0].id;
+      modeSel.dispatchEvent(new Event("change", { bubbles: true }));
+      rec("edit-marquee-var", document.querySelector("#loop-slot > .blk:last-child input[type='number']") === null
+          && document.getElementById("code-view").textContent.indexOf("Oled_Marquee(&oled9, count9)") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Oled_Marquee[^;]*/) || [""])[0]);
+
       document.getElementById("btn-add-object").click();
       var ledBtn2 = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
           function (b) { return b.textContent === "LED"; })[0];
@@ -360,6 +396,7 @@ window.addEventListener("DOMContentLoaded", function () {
       rec("oled-reserved-pin-conflict", !document.getElementById("error-banner").classList.contains("hidden")
           && document.getElementById("error-banner").textContent.indexOf("PB8") >= 0,
           "banner=" + document.getElementById("error-banner").textContent);
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
       document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
       document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
       document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();

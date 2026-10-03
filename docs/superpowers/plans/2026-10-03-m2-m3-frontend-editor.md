@@ -613,7 +613,7 @@ test("名字非法与重名报错", () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试看失败** → `node --test tests/validate.test.js`，Expected: FAIL
+- [x] **Step 2: 跑测试看失败** → `node --test tests/validate.test.js`，Expected: FAIL（测试先行抓出计划自带 bug：DUP_NAME 检测挂 else-if 上，非法名字时漏报）
 
 - [x] **Step 3: 实现 `web/js/validate.js`（全文）**（DUP 检测改为独立 if，已同步上方清单）
 

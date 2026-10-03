@@ -23,7 +23,7 @@
 - 外设对象：按键（GPIO 输入）、LED、蜂鸣器（有源，GPIO 输出）、舵机（PWM）、整数变量。
 - 语句积木：对象动作 / 延时 / 如果-否则（可嵌套）。
 - 条件：按键状态、变量与常数比较。
-- 目标硬件：STM32F103C8T6（蓝药丸）+ HAL 库 + CubeMX Makefile 工程 + VSCode + ST-Link（现场物资；DAP-Link 配置随工程附带备用）。
+- 目标硬件：STM32F103C8T6（蓝药丸）+ HAL 库 + CMake/Ninja 工程 + VSCode + ST-Link（现场物资）。
 - 一键下载完整工程 zip（模板 + 生成代码 + 驱动 + `.vscode` + 烧录脚本 + 中文说明）。
 - 内置 3 个示例、localStorage 自动保存、工程 JSON 导入导出。
 
@@ -50,8 +50,8 @@
 | 代码生成 | 生成 `setup()/loop()` 风格 C 代码，调用手写 BSP 驱动库 |
 | 外设初始化 | 由 BSP 驱动自行初始化（HAL 手写），引脚任意选，不依赖 CubeMX 再生成 |
 | 工程打包 | 浏览器内 JSZip；模板工程以 base64 内嵌进工具 |
-| 编译验证 | **当前笔记本本地编译**（CubeCLT 自带 arm-none-eabi-gcc + make）；NAS/远程编译后续再考虑 |
-| 烧录链路 | STM32CubeCLT + VSCode + Cortex-Debug + OpenOCD（默认 ST-Link，附 DAP-Link/CMSIS-DAP 备用配置） |
+| 编译验证 | **当前笔记本本地编译**（CubeCLT 自带 arm-none-eabi-gcc + CMake + Ninja）；NAS/远程编译后续再考虑 |
+| 烧录链路 | STM32CubeCLT + VSCode + Cortex-Debug：烧录走 STM32_Programmer_CLI、调试走 ST-LINK GDB server（纯 ST-Link 栈；DAP-Link 留待以后装 OpenOCD 再支持） |
 | 使用场景 | 招新现场工作人员笔记本，鼠标拖拽，桌面布局，界面全中文 |
 
 ## 4. 系统架构
@@ -121,29 +121,28 @@ web/
 
 ### 4.4 模板工程（`template/`，仓库内维护）
 
-CubeMX 生成的 F103C8T6 Makefile 空工程（仅时钟 72MHz + HAL init）+ BSP + 配置：
+手写的 F103C8T6 最小工程（时钟 72MHz + HAL init，HAL 源码取自 STM32CubeF1；不用 CubeMX 生成，外设初始化全部由 BSP 接管）+ 配置：
 
 ```
 template/
-├── .vscode/                  # tasks.json 构建 / launch.json F5 烧录 / c_cpp_properties.json
+├── .vscode/                  # tasks.json 构建 / launch.json F5 烧录+调试 / c_cpp_properties.json
 ├── Core/
 │   ├── Inc/                  # main.h、user_app.h、bsp_key.h、bsp_led.h、bsp_buzzer.h、bsp_servo.h
 │   └── Src/                  # main.c（固定）、user_code.c（生成物）、bsp_*.c（手写驱动）
 ├── Drivers/                  # 裁剪过的 HAL：RCC/GPIO/TIM/CORTEX 最小集
 ├── Startup/                  # startup_stm32f103xb.s
 ├── STM32F103C8Tx_FLASH.ld
-├── Makefile                  # TARGET 固定为 firmware
-├── openocd.cfg               # 默认 stlink + stm32f1x（另附 openocd-daplink.cfg）
-├── 编译烧录.bat               # make -j + openocd 烧录，双击即用
-├── 使用说明.md                # 打开 → F5 → 板子动，三步图文
-└── *.ioc                     # 供以后在 CubeMX 中查看/改时钟
+├── CMakeLists.txt            # CMake + Ninja 构建，target 固定为 firmware
+├── 编译烧录.bat               # cmake 构建 + STM32_Programmer_CLI 烧录，双击即用
+└── 使用说明.md                # 打开 → F5 → 板子动，三步图文
 ```
 
 关键约定：
 
-- `main.c` 完全固定：时钟、HAL 初始化、`while(1){ user_loop(); }`。所有内容放在 CubeMX 的 `USER CODE BEGIN/END` 区内——将来即使用 CubeMX 重新生成工程也不会被冲掉。
+- 工具链基于已安装的 CubeCLT 1.18.0（`D:\STM32CubeCLT_1.18.0`）：自带 arm-none-eabi-gcc 13.3 / GDB / CMake 3.28 / Ninja 1.11 / STM32CubeProgrammer 2.19 / ST-LINK GDB server；**该版本不含 make 与 OpenOCD**，故构建用 CMake + Ninja（与 ST 官方 VS Code 扩展同栈），烧录用 STM32_Programmer_CLI。
+- `main.c` 完全固定：时钟、HAL 初始化、`while(1){ user_loop(); }`，改动集中在 USER CODE 区，框架代码不随生成变化。
 - 生成代码单独放 `Core/Src/user_code.c`，与框架代码完全分离。
-- zip 打包时只把根目录名改成新人的工程名，`Makefile` 的 `TARGET` 保持 `firmware`（避免中文/空格文件名问题）。
+- zip 打包时只把根目录名改成新人的工程名，CMake target 保持 `firmware`（避免中文/空格文件名问题）。
 
 ### 4.5 BSP 驱动（手写 + 真板调试）
 
@@ -302,14 +301,14 @@ void user_loop(void)
 ├── .vscode/                  # tasks / launch / c_cpp_properties
 ├── Core/Inc/ + Core/Src/     # main.c 固定、user_code.c 生成、bsp_*.c 驱动
 ├── Drivers/                  # 裁剪 HAL（体积小）
-├── Startup/ + .ld + Makefile + openocd.cfg（ST-Link；附 openocd-daplink.cfg）
-├── 编译烧录.bat               # 双击 = make -j && openocd 烧录
+├── Startup/ + .ld + CMakeLists.txt（CMake + Ninja，target=firmware）
+├── 编译烧录.bat               # 双击 = cmake 构建 + STM32_Programmer_CLI 烧录
 └── 使用说明.md                # 打开 → F5 → 板子动，三步图文
 ```
 
 ### 7.2 工作人员笔记本一次性准备
 
-- 安装 **STM32CubeCLT**（ST 官方命令行工具包，含 arm-none-eabi-gcc / make / OpenOCD，免费）+ VSCode + Cortex-Debug 扩展 + **ST-Link 驱动**（现场 ST-Link 现货充足；DAP-Link 驱动按需装，兼容备用）。
+- 安装 **STM32CubeCLT**（免费；自带 arm-none-eabi-gcc / CMake / Ninja / STM32CubeProgrammer / ST-LINK GDB server）——**✅ 已装好：`D:\STM32CubeCLT_1.18.0`（2026-10-03）**；+ VSCode + Cortex-Debug 扩展 + **ST-Link 驱动**（现场 ST-Link 现货充足）。
 - 验证：装好后现场流程走一遍（见里程碑 M4）。
 
 ### 7.3 现场三步
@@ -318,7 +317,7 @@ void user_loop(void)
 
 ## 8. 测试与验收
 
-1. **本地编译回归（当前笔记本）**：CubeCLT 的 arm-none-eabi-gcc + make，对 3 个内置示例逐个生成 `user_code.c` 塞进模板工程编译，全过才算代码生成正确。工具脚本：`tools/run-example-builds.bat`（后续可把该脚本挂到 NAS 做远程 CI，v1 不需要）。
+1. **本地编译回归（当前笔记本）**：CubeCLT 的 arm-none-eabi-gcc + CMake + Ninja，对 3 个内置示例逐个生成 `user_code.c` 塞进模板工程编译，全过才算代码生成正确。工具脚本：`tools/run-example-builds.bat`（后续可把该脚本挂到 NAS 做远程 CI，v1 不需要）。
 2. **纯函数单测**：`codegen`（积木树 → C 代码）与 `validate`（引脚冲突）无 DOM 依赖，Node 直接跑断言（`node --test`）。
 3. **真板实测（最终验收）**：F103C8T6 + ST-Link 跑通 3 个示例 + 「按键控制舵机」自由发挥；按键消抖手感、舵机角度以真板为准调参。
 

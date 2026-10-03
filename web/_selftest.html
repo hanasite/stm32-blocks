@@ -383,7 +383,8 @@ window.addEventListener("DOMContentLoaded", function () {
       modeSel.value = project.objects.filter(function (o) { return o.name === "count9"; })[0].id;
       modeSel.dispatchEvent(new Event("change", { bubbles: true }));
       rec("edit-marquee-var", document.querySelector("#loop-slot > .blk:last-child input[type='number']") === null
-          && document.getElementById("code-view").textContent.indexOf("Oled_Marquee(&oled9, count9)") >= 0,
+          && document.getElementById("code-view").textContent.indexOf("Oled_Marquee(&oled9, count9)") >= 0
+          && document.getElementById("code-view").textContent.indexOf("跑马灯：显示进度 count9") >= 0,
           "code=" + (document.getElementById("code-view").textContent.match(/Oled_Marquee[^;]*/) || [""])[0]);
 
       document.getElementById("btn-add-object").click();

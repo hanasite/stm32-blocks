@@ -119,7 +119,8 @@
         { id: "showvar", label: "显示变量", param: "var", paramType: "intref",
           code: "Oled_ShowInt(&{n}, {var});" },
         { id: "marquee", label: "跑马灯", param: "progress", paramLabel: "进度", paramType: "numref",
-          defaultParam: 0, min: 0, max: 100, code: "Oled_Marquee(&{n}, {progress});" }
+          defaultParam: 0, min: 0, max: 100,
+          code: "Oled_Marquee(&{n}, {progress});   /* 跑马灯：显示进度 {progress} */" }
       ],
       initCode: "Oled_Init(&{n})",
       comment: "OLED(SSD1306 128x64, 软I2C PB8/PB9)"

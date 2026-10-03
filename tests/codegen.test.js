@@ -121,7 +121,7 @@ test("红外 + OLED 生成代码（显示变量取对象名、跑马灯带参数
   assert.ok(code.includes("if (Ir_IsTriggered(&ir1)) {"));
   assert.ok(code.includes('Oled_ShowText(&oled1, "YES");'));
   assert.ok(code.includes("Oled_ShowInt(&oled1, count1);"));
-  assert.ok(code.includes("Oled_Marquee(&oled1, count1);"));   // 变量驱动进度
+  assert.ok(code.includes("Oled_Marquee(&oled1, count1);   /* 跑马灯：显示进度 count1 */"));   // 变量驱动进度 + 尾注释
   assert.ok(code.includes('Oled_ShowText(&oled1, "NO");'));
   assert.ok(code.includes("Oled_Marquee(&oled1, 60);"));
 });

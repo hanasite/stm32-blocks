@@ -21,6 +21,7 @@ set(CORE_SOURCES
   Core/Src/bsp_key.c
   Core/Src/bsp_buzzer.c
   Core/Src/bsp_servo.c
+  Core/Src/bsp_ssd1306.c
 )
 
 set(HAL_SOURCES

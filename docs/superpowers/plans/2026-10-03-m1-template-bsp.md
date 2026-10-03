@@ -943,7 +943,7 @@ void Buzzer_Off(Buzzer *b);
 void Buzzer_Toggle(Buzzer *b);
 ```
 
-- [ ] **Step 1: 写 `bsp_buzzer.h` / `bsp_buzzer.c`（全文；结构体与签名照上，实现与 bsp_led 同型，函数改名）**
+- [x] **Step 1: 写 `bsp_buzzer.h` / `bsp_buzzer.c`（全文；结构体与签名照上，实现与 bsp_led 同型，函数改名）**
 
 ```c
 /* bsp_buzzer.h */
@@ -1007,7 +1007,7 @@ void Buzzer_Toggle(Buzzer *b)
 }
 ```
 
-- [ ] **Step 2: 更新 CMakeLists / user_app.h / user_code.c（冒烟：按键→蜂鸣器）**
+- [x] **Step 2: 更新 CMakeLists / user_app.h / user_code.c（冒烟：按键→蜂鸣器）**
 
 `CMakeLists.txt` 加 `Core/Src/bsp_buzzer.c`；`user_app.h` 加 `#include "bsp_buzzer.h"`；`user_code.c` 在 Task 4 基础上加：
 
@@ -1018,12 +1018,12 @@ Buzzer_Init(&buzzer1, GPIOB, GPIO_PIN_1, ACTIVE_LOW);
 /* user_loop 的 if 分支加：Buzzer_On(&buzzer1); else 分支加：Buzzer_Off(&buzzer1); */
 ```
 
-- [ ] **Step 3: 编译 + 烧录 + 真板验证**
+- [ ] **Step 3: 编译 + 烧录 + 真板验证**（编译已过：FLASH 5228B；烧录待接板）
 
 同 Task 4 的一条龙命令。Expected：按住按键 → 蜂鸣器响（LED 同时亮），松开 → 停。
 （若蜂鸣器模块是高电平触发款：把 `ACTIVE_LOW` 改 `ACTIVE_HIGH` 再验证，然后改回——生成器以后会按界面选项生成。）
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A && git commit -m "feat: bsp_buzzer 蜂鸣器驱动，按键响铃冒烟通过

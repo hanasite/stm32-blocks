@@ -19,6 +19,7 @@ set(CORE_SOURCES
   Core/Src/bsp_common.c
   Core/Src/bsp_led.c
   Core/Src/bsp_key.c
+  Core/Src/bsp_buzzer.c
 )
 
 set(HAL_SOURCES

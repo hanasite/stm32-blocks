@@ -335,4 +335,14 @@ void user_loop(void)
 - [x] 蜂鸣器为**有源**（GPIO 通电即响）——设计假设成立，无源 PWM 音调不做。
 - [x] 工具名：**STM32 积木工坊**。
 - [x] 招新日期：**十月中旬**，按 10-15 前后倒排里程碑。
-- [x] 现场物资：F103C8T6 **2 块**（轮流烧录给新人玩）；**ST-Link 现货很多**（现场主用，DAP-Link 配置随工程附带备用）。
+- [x] 现场物资：F103C8T6 **2 块**（轮流烧录给新人玩）；**ST-Link 现货很多**（现场主用；DAP-Link 留待以后装 OpenOCD 再支持）。
+
+## 11. 开源项目调研结论（2026-10-03）
+
+完整报告见 `docs/superpowers/research/`（两份）。核心结论：
+
+- **没有任何开源项目做到"拖积木 → 生成 STM32 HAL 完整工程 → 编译烧录"**——现有工具全部走 Arduino core（aily-blockly、S4E、BlocklyDuino 系）或私有运行时。我们的路线是空白区，自研必要且成立。
+- 最接近的两个都不可用：**stmBlockly**（唯一"积木→完整 F103 工程→烧录"样本，但自研 MCAL 非 HAL、依赖本地 CubeIDE、停更 2 年、0 star——**只读源码参考，不 fork**；M1/M2 实施时可翻阅其工程组织）；**aily-blockly**（3.8k star 活跃，但 GPL-3.0、Electron 桌面、Arduino 框架，路线不同）。
+- 零构建静态网页积木有多个成功先例（BlocklyDuino v1/v2、Ardublockly、STudio4Education），我们的"静态页 + JSZip 打包完整工程"是它们"客户端导出"思路的进阶形态。
+- 吸收要点：Mixly 的代码片段注册表机制（catalog 模板已等价实现）；S4E 的引脚自动映射交互（与舵机"通道→引脚"下拉防错同思路，方向被第三方验证）；天问Block 的"导出 IDE 工程"印证了生成完整工程 zip 的教育价值。
+- 国内生态（Mixly/Mind+/好好搭搭/天问Block）均无 STM32 原生图形化支持——招新展示时"我们自己做了一个"有差异化讲点。

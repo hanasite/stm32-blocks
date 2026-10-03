@@ -2,6 +2,8 @@
 #define __USER_APP_H
 
 #include "main.h"
+#include "bsp_common.h"
+#include "bsp_led.h"
 
 void user_setup(void);
 void user_loop(void);

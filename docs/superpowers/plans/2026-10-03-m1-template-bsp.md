@@ -563,7 +563,7 @@ cmake --build build
 
 Expected: `[10/10] Linking C executable firmware.elf`，末尾 `arm-none-eabi-size` 输出 text 约 4–8KB，`Memory region Used Size Region Size` 两行。若报缺 HAL 模块符号（例如 `HAL_FLASH_...` 未定义），把缺的模块加进 `stm32f1xx_hal_conf.h` 的 `#define` 与 `CMakeLists.txt` 的 `HAL_SOURCES` 后重编。
 
-**执行记录（2026-10-03）**：编译前修了两处裁剪遗漏——① 缺 `Inc/Legacy/stm32_hal_legacy.h`（已加入 Step 2 复制清单）；② `hal_conf.h` 缺 `HSI_VALUE` 定义（已加入 Step 3 清单）。修后一次通过：`[16/16] Linking C executable firmware`，FLASH 3392B / 64K（5.18%）、RAM 1584B / 20K（7.73%）；链接期 newlib `_close/_lseek/_read/_write not implemented` 与 RWX 段警告为标准输出，可忽略。
+**执行记录（2026-10-03）**：编译前修了两处裁剪遗漏——① 缺 `Inc/Legacy/stm32_hal_legacy.h`（已加入 Step 2 复制清单）；② `hal_conf.h` 缺 `HSI_VALUE` 定义（已加入 Step 3 清单）。修后一次通过：`[16/16] Linking C executable firmware`，FLASH 3392B / 64K（5.18%）、RAM 1584B / 20K（7.73%）；链接期 newlib `_close/_lseek/_read/_write not implemented` 与 RWX 段警告为标准输出，可忽略。③ **中文路径下 ninja 的自动 regen 会崩（0xC0000409）**：已在 CMakeLists 加 `CMAKE_SUPPRESS_REGENERATION`，且产物名修正为 `firmware.elf`——**改过 cmake 文件后必须显式跑一次 configure 再 build**。
 
 - [ ] **Step 11: 真板烧录（待用户接板；2026-10-03 编译已过，仅差烧录观察）**
 
@@ -609,7 +609,7 @@ void Led_Off(Led *l);
 void Led_Toggle(Led *l);
 ```
 
-- [ ] **Step 1: 写 `bsp_common.h` / `bsp_common.c`（全文）**
+- [x] **Step 1: 写 `bsp_common.h` / `bsp_common.c`（全文）**
 
 `bsp_common.h`：
 
@@ -641,7 +641,7 @@ void Bsp_GpioClkEnable(GPIO_TypeDef *port)
 }
 ```
 
-- [ ] **Step 2: 写 `bsp_led.h` / `bsp_led.c`（全文）**
+- [x] **Step 2: 写 `bsp_led.h` / `bsp_led.c`（全文）**
 
 `bsp_led.h`：
 
@@ -707,7 +707,7 @@ void Led_Toggle(Led *l)
 }
 ```
 
-- [ ] **Step 3: 更新 `CMakeLists.txt`、`user_app.h`、`user_code.c`**
+- [x] **Step 3: 更新 `CMakeLists.txt`、`user_app.h`、`user_code.c`**
 
 `CMakeLists.txt` 的 `CORE_SOURCES` 增加 `Core/Src/bsp_common.c` 与 `Core/Src/bsp_led.c`。
 `user_app.h` 在 `#include "main.h"` 后增加：
@@ -737,7 +737,7 @@ void user_loop(void)
 }
 ```
 
-- [ ] **Step 4: 编译**
+- [x] **Step 4: 编译**（2026-10-03 通过：`[6/6] Linking`，FLASH 4752B）
 
 ```bash
 cd "F:/kakuns开源项目/stm32-blocks/template" && source ../tools/env.sh && cmake --build build
@@ -745,7 +745,7 @@ cd "F:/kakuns开源项目/stm32-blocks/template" && source ../tools/env.sh && cm
 
 Expected: 链接成功，无 warning（bsp 文件在 -Wall 下也应零警告）。
 
-- [ ] **Step 5: 烧录 + 真板验证**
+- [ ] **Step 5: 烧录 + 真板验证**（待接板；编译已过，预期 LED 1Hz 闪烁）
 
 ```bash
 STM32_Programmer_CLI -c port=SWD -w build/firmware.elf -v -rst
@@ -753,7 +753,7 @@ STM32_Programmer_CLI -c port=SWD -w build/firmware.elf -v -rst
 
 Expected: 板载 LED（PC13）约 1Hz 闪烁（亮 500ms 灭 500ms）。
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A && git commit -m "feat: bsp_common/bsp_led 驱动，板载 LED 闪烁冒烟通过

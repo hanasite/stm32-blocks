@@ -16,6 +16,8 @@ set(CORE_SOURCES
   Core/Src/system_stm32f1xx.c
   Core/Src/user_app.c
   Core/Src/user_code.c
+  Core/Src/bsp_common.c
+  Core/Src/bsp_led.c
 )
 
 set(HAL_SOURCES

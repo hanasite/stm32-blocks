@@ -18,11 +18,12 @@ static uint8_t big_scale(size_t len)
     return s;
 }
 
-static void draw_big_text(const char *s)
+static void draw_big_text_max(const char *s, uint8_t max_scale)
 {
     size_t len = strlen(s);
     if (len > 20) { len = 20; }
     uint8_t scale = big_scale(len);
+    if (scale > max_scale) { scale = max_scale; }
     int w = (int)(len * 6 - 1) * scale;
     int x0 = (SCR_W - w) / 2;
     int y0 = (SCR_H - 7 * scale) / 2;
@@ -49,6 +50,11 @@ static void draw_big_text(const char *s)
             }
         }
     }
+}
+
+static void draw_big_text(const char *s)
+{
+    draw_big_text_max(s, 8);
 }
 
 /* ---------- 跑马灯：外圈 380 步，从正上方（顶部中央）顺时针 ---------- */
@@ -112,5 +118,8 @@ void Oled_Marquee(Oled *o, int progress)
     SSD1306_Clear();
     int lit = progress * RING_STEPS / 100;
     for (int k = 0; k < lit; k++) { draw_ring_step(k); }
+    char tmp[8];
+    snprintf(tmp, sizeof(tmp), "%d", progress);
+    draw_big_text_max(tmp, 6);                 /* 中间大字体显示数值（上限 6 不压灯圈） */
     SSD1306_Refresh();
 }

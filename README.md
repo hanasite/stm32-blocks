@@ -5,7 +5,7 @@
 - 目标硬件：STM32F103C8T6（蓝药丸）+ HAL + CMake/Ninja 工程 + VSCode / ST-Link
 - 工具形态：零构建静态网页（`web/index.html`），双击即用、离线可用
 - 外设积木：按键 / 红外传感器 / LED / 蜂鸣器 / 舵机 / OLED 屏 / 整数变量 + 延时 / 如果-否则；引脚自由选，冲突自动拦截
-- OLED 玩法（每次只显示一样、大字体）：YES / NO / LOW / HIGH / 显示单个变量 / 最外圈 5px 跑马灯（进度 0~100）
+- OLED 玩法（每次只显示一样、大字体）：YES / NO / LOW / HIGH / 显示单个变量 / 最外圈 5px 跑马灯（进度 0~100，中间大字显示进度数值）
 - 内置示例：按键点灯、按键组合技、舵机来回摆、红外感应灯、跑马灯进度圈
 - 招新目标：2026 年 10 月中旬
 - 设计文档：[docs/superpowers/specs/2026-10-03-stm32-block-editor-design.md](docs/superpowers/specs/2026-10-03-stm32-block-editor-design.md)

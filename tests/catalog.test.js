@@ -59,3 +59,17 @@ test("红外与 OLED：引脚映射、动作定义与接线提示", () => {
   assert.ok(Catalog.get("key").params.find((p) => p.key === "pull").options[0].label.includes("接 GND"));
   assert.ok(Catalog.get("led").params.find((p) => p.key === "active").options[1].label.includes("接 3V3"));
 });
+
+test("小恐龙组件：动作定义与 objref 绑定参数", () => {
+  const d = Catalog.get("dino");
+  assert.equal(d.declare, "Dino");
+  assert.equal(d.actions.length, 1);
+  const fr = d.actions[0];
+  assert.equal(fr.id, "frame");
+  assert.equal(fr.params.length, 2);
+  assert.equal(fr.params[0].key, "oled");
+  assert.equal(fr.params[0].refType, "oled");
+  assert.equal(fr.params[1].key, "jump");
+  assert.equal(fr.params[1].refType, "input");
+  assert.equal(fr.params[1].allowNone, true);
+});

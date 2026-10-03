@@ -78,12 +78,24 @@
     return p;
   }
 
+  function dinoGame() {
+    var p = Model.newProject("小恐龙游戏");
+    var ir = Object.assign(Model.addObject(p, "ir", { pin: "PA2", active: "low" }), { id: "o1", name: "ir1" });
+    var oled = Object.assign(Model.addObject(p, "oled", {}), { id: "o2", name: "oled1" });
+    var dino = Object.assign(Model.addObject(p, "dino", {}), { id: "o3", name: "dino1" });
+    var frame = Model.nodeAction(dino.id, "frame");
+    frame.refs = { oled: oled.id, jump: ir.id };
+    p.loop.push(frame, Model.nodeDelay(30));
+    return p;
+  }
+
   var ALL = [
     { id: "blink", label: "按键点灯", build: blink },
     { id: "combo", label: "按键组合技", build: combo },
     { id: "sweep", label: "舵机来回摆", build: sweep },
     { id: "irled", label: "红外感应灯", build: irLed },
-    { id: "marquee", label: "跑马灯进度圈", build: marqueeLoop }
+    { id: "marquee", label: "跑马灯进度圈", build: marqueeLoop },
+    { id: "dino", label: "小恐龙游戏", build: dinoGame }
   ];
 
   function list() { return ALL.map(function (e) { return { id: e.id, label: e.label }; }); }

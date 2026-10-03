@@ -4,13 +4,20 @@ const Examples = require("../web/js/examples.js");
 const Validate = require("../web/js/validate.js");
 const Codegen = require("../web/js/codegen.js");
 
-test("五个示例都存在且校验通过", () => {
-  assert.equal(Examples.list().length, 5);
+test("六个示例都存在且校验通过", () => {
+  assert.equal(Examples.list().length, 6);
   Examples.list().forEach((e) => {
     const p = Examples.load(e.id);
     assert.equal(Validate.check(p).errors.length, 0, e.id + " 应无校验错误");
     assert.ok(Codegen.generate(p).includes("void user_loop(void)"));
   });
+});
+
+test("dino 示例：绑定 OLED 与红外跳跃输入", () => {
+  const code = Codegen.generate(Examples.load("dino"));
+  assert.ok(code.includes("Dino_Init(&dino1);"));
+  assert.ok(code.includes("Dino_Frame(&dino1, &oled1, Ir_IsTriggered(&ir1));"));
+  assert.ok(code.includes("Delay_ms(30);"));
 });
 
 test("marquee 示例：变量驱动进度、满 100 归零", () => {

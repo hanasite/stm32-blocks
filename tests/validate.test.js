@@ -83,3 +83,19 @@ test("跑马灯：固定数值合法；选中的变量消失（悬空 varId）�
   delete n.varId;
   assert.deepEqual(Validate.check(p).errors, []);
 });
+
+test("小恐龙组件：未绑 OLED 报错、不接输入合法、悬空绑定报错", () => {
+  const p = Model.newProject("t");
+  const dino = Model.addObject(p, "dino", {});
+  const frame = Model.nodeAction(dino.id, "frame");
+  frame.refs = { jump: "" };
+  p.loop.push(frame);
+  let codes = Validate.check(p).errors.map((x) => x.code);
+  assert.ok(codes.includes("MISSING_REF"));          // 缺 OLED 绑定
+  const oled = Model.addObject(p, "oled", {});
+  frame.refs.oled = oled.id;
+  assert.deepEqual(Validate.check(p).errors, []);    // OLED + 不接输入 => 合法
+  frame.refs.jump = "o99";                            // 悬空输入
+  codes = Validate.check(p).errors.map((x) => x.code);
+  assert.ok(codes.includes("MISSING_REF"));
+});

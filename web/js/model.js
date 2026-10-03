@@ -36,7 +36,13 @@
   }
 
   function nodeReferences(node, objectId) {
-    if (node.kind === "action") { return node.objectId === objectId || node.varId === objectId; }
+    if (node.kind === "action") {
+      if (node.objectId === objectId || node.varId === objectId) { return true; }
+      if (node.refs) {
+        for (var k in node.refs) { if (node.refs[k] === objectId) { return true; } }
+      }
+      return false;
+    }
     if (node.kind === "if") {
       return (node.cond.kind === "state" || node.cond.kind === "compare")
         ? node.cond.objectId === objectId : false;

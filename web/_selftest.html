@@ -283,7 +283,7 @@ window.addEventListener("DOMContentLoaded", function () {
       rec("edit-else-btn", !!document.querySelector("#loop-slot .if-else-head"));
 
       // 10) 示例菜单 / 导出 / 悬停联动
-      rec("menu-options", document.querySelectorAll("#example-select option").length === 6,
+      rec("menu-options", document.querySelectorAll("#example-select option").length === 7,
           "opts=" + document.querySelectorAll("#example-select option").length);
       var exSel = document.getElementById("example-select");
       exSel.value = "sweep";
@@ -388,6 +388,29 @@ window.addEventListener("DOMContentLoaded", function () {
           && document.getElementById("code-view").textContent.indexOf("跑马灯：显示进度 count9") >= 0,
           "code=" + (document.getElementById("code-view").textContent.match(/Oled_Marquee[^;]*/) || [""])[0]);
 
+      // 小恐龙组件：建 dino → 拖块切成 dino → OLED/跳跃输入自动绑定
+      document.getElementById("btn-add-object").click();
+      var dinoBtn = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "小恐龙游戏"; })[0];
+      dinoBtn.click();
+      document.getElementById("dlg-name").value = "dino9";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-dino-add", document.getElementById("code-view").textContent.indexOf("Dino_Init(&dino9") >= 0,
+          "objs=" + project.objects.length);
+      var actPal3 = document.querySelector('[data-palette="action"]');
+      var srD = document.getElementById("loop-slot").getBoundingClientRect();
+      var dx = srD.left + 60;
+      cdrag(actPal3, dx, srD.bottom - 10, [[dx, srD.bottom - 40], [dx, srD.bottom - 10]]);
+      var dinoObj = project.objects.filter(function (o) { return o.name === "dino9"; })[0];
+      var dSel = document.querySelectorAll("#loop-slot > .blk:last-child select");
+      dSel[0].value = dinoObj.id;
+      dSel[0].dispatchEvent(new Event("change", { bubbles: true }));
+      var dinoBlock = document.querySelector("#loop-slot > .blk:last-child");
+      rec("edit-dino-bind", dinoBlock.textContent.indexOf("显示到") >= 0
+          && dinoBlock.textContent.indexOf("跳跃输入") >= 0
+          && document.getElementById("code-view").textContent.indexOf("Dino_Frame(&dino9, &oled9, Ir_IsTriggered(&ir9));") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Dino_Frame[^;]*/) || [""])[0]);
+
       document.getElementById("btn-add-object").click();
       var ledBtn2 = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
           function (b) { return b.textContent === "LED"; })[0];
@@ -398,6 +421,7 @@ window.addEventListener("DOMContentLoaded", function () {
       rec("oled-reserved-pin-conflict", !document.getElementById("error-banner").classList.contains("hidden")
           && document.getElementById("error-banner").textContent.indexOf("PB8") >= 0,
           "banner=" + document.getElementById("error-banner").textContent);
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
       document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
       document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
       document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();

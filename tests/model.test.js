@@ -113,3 +113,18 @@ test("删除整数对象会清理「显示变量」积木（varId 引用），�
   assert.equal(p.loop.length, 1);
   assert.equal(p.loop[0].kind, "delay");
 });
+
+test("删除 OLED / 红外对象会清理绑定它的恐龙积木（refs 引用）", () => {
+  const p = Model.newProject("t");
+  const oled = Model.addObject(p, "oled", {});
+  const ir = Model.addObject(p, "ir", { pin: "PA2", active: "low" });
+  const dino = Model.addObject(p, "dino", {});
+  const frame = Model.nodeAction(dino.id, "frame");
+  frame.refs = { oled: oled.id, jump: ir.id };
+  p.loop.push(frame);
+  assert.equal(Model.countReferences(p, oled.id), 1);
+  assert.equal(Model.countReferences(p, ir.id), 1);
+  assert.equal(Model.deleteObject(p, oled.id), 1);   // 绑了 OLED -> 积木整块移除
+  assert.equal(p.loop.length, 0);
+  assert.equal(Model.countReferences(p, ir.id), 0);  // 积木没了，红外引用也没了
+});

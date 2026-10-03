@@ -55,6 +55,33 @@
         if (!obj) { return; }
         var act = Catalog.get(obj.type).actions.filter(function (a) { return a.id === node.action; })[0];
         if (!act) { return; }
+
+        /* 多参数动作（objref 绑定，如小恐龙的 OLED/跳跃输入） */
+        if (act.params) {
+          act.params.forEach(function (pd) {
+            var refId = node.refs ? node.refs[pd.key] : null;
+            if (!refId) {
+              if (!pd.allowNone) {
+                errors.push({ code: "MISSING_REF",
+                              message: "「" + obj.name + "」的「" + act.label + "」积木还没绑定「" + pd.label + "」"
+                                       + (pd.refType === "oled" ? "（先在左边建一个 OLED 屏对象）" : "（先在左边建一个按键/红外对象）"),
+                              objectIds: [obj.id] });
+              }
+              return;
+            }
+            var okRef = project.objects.some(function (o) {
+              if (o.id !== refId) { return false; }
+              return pd.refType === "oled" ? o.type === "oled" : (o.type === "key" || o.type === "ir");
+            });
+            if (!okRef) {
+              errors.push({ code: "MISSING_REF",
+                            message: "「" + obj.name + "」的「" + act.label + "」积木的「" + pd.label + "」对象不存在了，请重新绑定",
+                            objectIds: [obj.id] });
+            }
+          });
+          return;
+        }
+
         var varOk = node.varId && project.objects.some(function (o) { return o.id === node.varId && o.type === "int"; });
         if (act.paramType === "intref" && !varOk) {
           errors.push({ code: "MISSING_VAR",

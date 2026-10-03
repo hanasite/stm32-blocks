@@ -45,6 +45,32 @@
     });
   }
 
+  /* 预处理：多参数动作的 objref 绑定（在代码生成之前跑，否则首帧代码里绑定还是空） */
+  function assignRefs(project) {
+    (function walk(nodes) {
+      nodes.forEach(function (node) {
+        if (node.kind === "if") { walk(node.then); walk(node.else); return; }
+        if (node.kind !== "action") { return; }
+        var obj = Model.findObject(project, node.objectId);
+        if (!obj) { return; }
+        var act = Catalog.get(obj.type).actions.filter(function (a) { return a.id === node.action; })[0];
+        if (!act || !act.params) { return; }
+        node.refs = node.refs || {};
+        act.params.forEach(function (pd) {
+          var pool = project.objects.filter(function (o) {
+            if (pd.refType === "oled") { return o.type === "oled"; }
+            return o.type === "key" || o.type === "ir";
+          });
+          var cur = node.refs[pd.key];
+          var curOk = cur && pool.some(function (o) { return o.id === cur; });
+          if (cur === undefined || (cur !== "" && !curOk)) {
+            node.refs[pd.key] = pool.length > 0 ? pool[0].id : "";
+          }
+        });
+      });
+    })(project.loop);
+  }
+
   function renderBlockList(container, nodes, project, opts) {
     opts = opts || {};
     container.innerHTML = "";
@@ -134,6 +160,39 @@
       (opts.rerender || noop)();
     };
     root.appendChild(actSel);
+
+    if (act.params) {
+      /* 多参数动作（objref 绑定）：每个参数一个对象下拉，缺对象给提示 */
+      node.refs = node.refs || {};
+      act.params.forEach(function (pd) {
+        root.appendChild(el("span", null, " " + pd.label + " "));
+        var pool = project.objects.filter(function (o) {
+          if (pd.refType === "oled") { return o.type === "oled"; }
+          return o.type === "key" || o.type === "ir";
+        });
+        if (pool.length === 0 && !pd.allowNone) {
+          var hint2 = el("span", null, pd.refType === "oled" ? "（先建一个 OLED 屏对象）" : "（先建一个按键/红外对象）");
+          hint2.style.fontSize = "12px";
+          root.appendChild(hint2);
+          delete node.refs[pd.key];
+          return;
+        }
+        if (node.refs[pd.key] === undefined
+            || (node.refs[pd.key] !== "" && !pool.some(function (o) { return o.id === node.refs[pd.key]; }))) {
+          node.refs[pd.key] = pool.length > 0 ? pool[0].id : "";
+        }
+        var opts2 = [];
+        if (pd.allowNone) { opts2.push({ v: "", label: "（不接）" }); }
+        opts2 = opts2.concat(pool.map(function (o) { return { v: o.id, label: o.name }; }));
+        var refSel = selectOf(opts2, node.refs[pd.key] || "");
+        refSel.onchange = function () {
+          node.refs[pd.key] = this.value;
+          (opts.quick || opts.rerender || noop)();
+        };
+        root.appendChild(refSel);
+      });
+      return root;
+    }
 
     if (act.param) {
       if (act.paramType === "intref") {
@@ -305,5 +364,5 @@
     view.innerHTML = html;
   }
 
-  return { el: el, assignUids: assignUids, renderObjects: renderObjects, renderBlockList: renderBlockList, renderNode: renderNode, renderCode: renderCode };
+  return { el: el, assignUids: assignUids, assignRefs: assignRefs, renderObjects: renderObjects, renderBlockList: renderBlockList, renderNode: renderNode, renderCode: renderCode };
 });

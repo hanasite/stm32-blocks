@@ -125,6 +125,21 @@
       initCode: "Oled_Init(&{n})",
       comment: "OLED(SSD1306 128x64, 软I2C PB8/PB9)"
     },
+    dino: {
+      label: "小恐龙游戏", declare: "Dino",
+      params: [],
+      states: [],
+      actions: [{
+        id: "frame", label: "运行一帧",
+        params: [
+          { key: "oled", label: "显示到", paramType: "objref", refType: "oled" },
+          { key: "jump", label: "跳跃输入", paramType: "objref", refType: "input", allowNone: true }
+        ],
+        code: "Dino_Frame(&{n}, {oled}, {jump});"
+      }],
+      initCode: "Dino_Init(&{n})",
+      comment: "小恐龙游戏(组件)"
+    },
     int: {
       label: "整数", declare: "int",
       params: [{ key: "init", label: "初始值", type: "number", default: 0 }],
@@ -183,7 +198,7 @@
 
   return {
     GPIO_PINS: GPIO_PINS, SERVO_CHANNELS: SERVO_CHANNELS,
-    TYPES: ["key", "ir", "led", "buzzer", "servo", "oled", "int"],
+    TYPES: ["key", "ir", "led", "buzzer", "servo", "oled", "dino", "int"],
     get: get, labelOf: labelOf, codeOf: codeOf,
     pinLabel: pinLabel, channelLabel: channelLabel,
     gpioPortOf: gpioPortOf, gpioPinMacroOf: gpioPinMacroOf,

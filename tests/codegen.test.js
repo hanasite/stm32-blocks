@@ -132,3 +132,30 @@ test("显示变量积木未选对象时回退成 0（由 validate 拦截提示�
   p.loop.push(Model.nodeAction(oled.id, "showvar"));
   assert.ok(Codegen.generate(p).includes("Oled_ShowInt(&oled1, 0);"));
 });
+
+test("小恐龙组件：多参数绑定生成代码（红外/按键/不接/缺屏）", () => {
+  const p = Model.newProject("恐龙塔");
+  const key = Object.assign(Model.addObject(p, "key", { pin: "PA1", pull: "up" }), { id: "o1", name: "key1" });
+  const ir = Object.assign(Model.addObject(p, "ir", { pin: "PA2", active: "low" }), { id: "o2", name: "ir1" });
+  const oled = Object.assign(Model.addObject(p, "oled", {}), { id: "o3", name: "oled1" });
+  const dino = Object.assign(Model.addObject(p, "dino", {}), { id: "o4", name: "dino1" });
+  const frame = Model.nodeAction(dino.id, "frame");
+  frame.refs = { oled: oled.id, jump: ir.id };
+  p.loop.push(frame);
+
+  const lines = Codegen.generate(p).split("\n");
+  assert.equal(lines.find((l) => l.indexOf("dino1;") === 7),
+    "Dino".padEnd(7) + "dino1;".padEnd(11) + "/* dino1 = 小恐龙游戏(组件) */");
+  let code = lines.join("\n");
+  assert.ok(code.includes("Dino_Init(&dino1);"));
+  assert.ok(code.includes("Dino_Frame(&dino1, &oled1, Ir_IsTriggered(&ir1));"));
+
+  frame.refs.jump = key.id;
+  assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, &oled1, Key_IsPressed(&key1));"));
+
+  frame.refs.jump = "";
+  assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, &oled1, 0);"));
+
+  delete frame.refs.oled;
+  assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, 0, 0);"));
+});

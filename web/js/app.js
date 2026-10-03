@@ -53,6 +53,7 @@
 
   function refresh() {
     Render.assignUids(project.loop);   // 先给新节点分配 uid，代码生成的 trace 才查得到
+    Render.assignRefs(project);        // 多参数动作的对象绑定先落地，代码生成才拿得到
     quickRefresh();
     Render.renderObjects(document.getElementById("object-list"), project, {
       onDelete: function (id) {

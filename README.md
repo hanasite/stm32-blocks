@@ -5,8 +5,9 @@
 - 目标硬件：STM32F103C8T6（蓝药丸）+ HAL + CMake/Ninja 工程 + VSCode / ST-Link
 - 工具形态：零构建静态网页（`web/index.html`），双击即用、离线可用
 - 外设积木：按键 / 红外传感器 / LED / 蜂鸣器 / 舵机 / OLED 屏 / 整数变量 + 延时 / 如果-否则；引脚自由选，冲突自动拦截
+- 组件积木：小恐龙游戏（跑在 OLED 上；块内绑定「显示到」某块屏 + 「跳跃输入」某按键/红外，跳跃带 300ms 冷却期）
 - OLED 玩法（每次只显示一样、大字体）：YES / NO / LOW / HIGH / 显示单个变量 / 最外圈 5px 跑马灯（进度 0~100，中间大字显示进度数值）
-- 内置示例：按键点灯、按键组合技、舵机来回摆、红外感应灯、跑马灯进度圈
+- 内置示例：按键点灯、按键组合技、舵机来回摆、红外感应灯、跑马灯进度圈、小恐龙游戏
 - 招新目标：2026 年 10 月中旬
 - 设计文档：[docs/superpowers/specs/2026-10-03-stm32-block-editor-design.md](docs/superpowers/specs/2026-10-03-stm32-block-editor-design.md)
 
@@ -31,9 +32,9 @@
 
 ## 开发
 
-- 单元测试：`node --test`（37 项，含 golden 测试逐字符锁定生成代码格式）
-- UI 无头自检：Edge 无头打开 `web/_selftest.html`（离线 50 项全绿；本地服务在线时 52 项，含真实"点击编译"端到端）
-- 示例编译回归：`node tools/run-example-builds.js`（5/5 通过）
+- 单元测试：`node --test`（42 项，含 golden 测试逐字符锁定生成代码格式）
+- UI 无头自检：Edge 无头打开 `web/_selftest.html`（离线 52 项全绿；本地服务在线时 54 项，含真实"点击编译"端到端）
+- 示例编译回归：`node tools/run-example-builds.js`（6/6 通过）
 - **模板（`template/`）任何改动后必须重跑 `node tools/embed-template.js`**，否则网页里内嵌的还是旧模板
 
 MIT License

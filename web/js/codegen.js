@@ -69,7 +69,22 @@
         obj = Model.findObject(project, node.objectId);
         var act = Catalog.get(obj.type).actions.filter(function (a) { return a.id === node.action; })[0];
         var map = { n: obj.name };
-        if (act.param) {
+        if (act.params) {
+          /* 多参数动作（objref 绑定）：解析 node.refs 里的对象引用 */
+          act.params.forEach(function (pd) {
+            var refId = node.refs ? node.refs[pd.key] : null;
+            var refObj = refId ? Model.findObject(project, refId) : null;
+            if (pd.refType === "oled") {
+              map[pd.key] = refObj ? "&" + refObj.name : "0";   /* 缺绑定给 0，引擎侧容错 */
+            } else if (refObj && refObj.type === "ir") {
+              map[pd.key] = "Ir_IsTriggered(&" + refObj.name + ")";
+            } else if (refObj && refObj.type === "key") {
+              map[pd.key] = "Key_IsPressed(&" + refObj.name + ")";
+            } else {
+              map[pd.key] = "0";                                 /* 不接输入 */
+            }
+          });
+        } else if (act.param) {
           if (act.paramType === "intref") {
             var varObj = node.varId ? Model.findObject(project, node.varId) : null;
             map[act.param] = varObj ? varObj.name : "0";   /* 缺变量时给 0，validate 会拦截 */

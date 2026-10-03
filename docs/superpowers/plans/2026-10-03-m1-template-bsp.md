@@ -789,7 +789,7 @@ uint8_t Key_IsPressed(Key *k);
 uint8_t Key_IsReleased(Key *k);
 ```
 
-- [ ] **Step 1: 写 `bsp_key.h`（全文，结构体同上）**
+- [x] **Step 1: 写 `bsp_key.h`（全文，结构体同上）**
 
 ```c
 #ifndef __BSP_KEY_H
@@ -814,7 +814,7 @@ uint8_t Key_IsReleased(Key *k);
 #endif /* __BSP_KEY_H */
 ```
 
-- [ ] **Step 2: 写 `bsp_key.c`（全文）**
+- [x] **Step 2: 写 `bsp_key.c`（全文）**
 
 ```c
 #include "bsp_key.h"
@@ -877,7 +877,7 @@ uint8_t Key_IsReleased(Key *k)
 }
 ```
 
-- [ ] **Step 3: 更新 CMakeLists / user_app.h / user_code.c（冒烟：按住亮，松开灭）**
+- [x] **Step 3: 更新 CMakeLists / user_app.h / user_code.c（冒烟：按住亮，松开灭）**
 
 `CMakeLists.txt` 加 `Core/Src/bsp_key.c`；`user_app.h` 加 `#include "bsp_key.h"`；`user_code.c`：
 
@@ -907,7 +907,7 @@ void user_loop(void)
 }
 ```
 
-- [ ] **Step 4: 编译 + 烧录 + 真板验证**
+- [ ] **Step 4: 编译 + 烧录 + 真板验证**（编译已过：FLASH 5004B；烧录待接板）
 
 ```bash
 cd "F:/kakuns开源项目/stm32-blocks/template" && source ../tools/env.sh && cmake --build build && STM32_Programmer_CLI -c port=SWD -w build/firmware.elf -v -rst
@@ -915,7 +915,7 @@ cd "F:/kakuns开源项目/stm32-blocks/template" && source ../tools/env.sh && cm
 
 Expected：按住 PA1 按键 → LED 亮；松开 → 灭。快速连按不应闪烁抖动（消抖生效）。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A && git commit -m "feat: bsp_key 按键驱动（20ms 消抖），按键控灯冒烟通过

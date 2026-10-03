@@ -18,6 +18,7 @@ set(CORE_SOURCES
   Core/Src/user_code.c
   Core/Src/bsp_common.c
   Core/Src/bsp_led.c
+  Core/Src/bsp_key.c
 )
 
 set(HAL_SOURCES

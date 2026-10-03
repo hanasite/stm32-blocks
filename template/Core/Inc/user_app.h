@@ -4,6 +4,7 @@
 #include "main.h"
 #include "bsp_common.h"
 #include "bsp_led.h"
+#include "bsp_key.h"
 
 void user_setup(void);
 void user_loop(void);

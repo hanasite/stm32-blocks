@@ -31,10 +31,46 @@
         ObjectsUI.open(project, id, function () { change(); });
       }
     });
-    // 4) 主循环渲染（本任务先静态渲染；拖拽任务接管后改为 interactive）
+    // 4) 主循环渲染
     Render.renderBlockList(document.getElementById("loop-slot"), project.loop, project);
     // 5) 自动保存
     try { localStorage.setItem(LS_KEY, Model.serialize(project)); } catch (e) { /* 隐私模式忽略 */ }
+  }
+
+  /* ---------- 拖拽落地辅助 ---------- */
+
+  function resolveDropList(proj, info) {
+    if (info.dropList === "loop") { return proj.loop; }
+    var owner = Model.findNodeByUid(proj, info.ownerUid);
+    if (!owner) { return null; }
+    return info.listKind === "then" ? owner.then : owner.else;
+  }
+
+  function dropIndexAt(info, list) {
+    for (var i = 0; i < list.length; i++) {
+      var dom = list[i].__uid ? document.querySelector('[data-node-id="' + list[i].__uid + '"]') : null;
+      if (!dom) { continue; }
+      var r = dom.getBoundingClientRect();
+      if (info.y < r.top + r.height / 2) { return i; }
+    }
+    return list.length;
+  }
+
+  function makePaletteNode(type, proj) {
+    if (type === "delay") { return Model.nodeDelay(100); }
+    if (type === "if") {
+      var keyObj = proj.objects.filter(function (o) { return o.type === "key"; })[0];
+      if (keyObj) { return Model.nodeIf(Model.condState(keyObj.id, "pressed"), [], []); }
+      var intObj = proj.objects.filter(function (o) { return o.type === "int"; })[0];
+      if (intObj) { return Model.nodeIf(Model.condCompare(intObj.id, ">=", 1), [], []); }
+      return null;   // 没有可用对象：不给放
+    }
+    var actObj = proj.objects.filter(function (o) { return Catalog.get(o.type).actions.length > 0; })[0];
+    if (!actObj) { return null; }
+    var act = Catalog.get(actObj.type).actions[0];
+    var node = Model.nodeAction(actObj.id, act.id);
+    if (act.param) { node.value = act.defaultParam; }
+    return node;
   }
 
   function init() {
@@ -56,9 +92,37 @@
     document.getElementById("btn-download").onclick = function () {
       alert("打包功能开发中（Task 10/11）");
     };
+
+    DragDrop.init({
+      palette: document.getElementById("palette"),
+      trash: document.getElementById("trash"),
+      onChange: change,
+      onDelete: function (info) {
+        if (info.paletteType) { change(); return; }        // 从积木盒拖进垃圾桶 = 什么都不做
+        Model.deleteNodeByUid(project, info.uid);
+        change();
+      },
+      onDrop: function (info) {
+        var targetList = resolveDropList(project, info);
+        if (!targetList) { change(); return; }
+        var index = dropIndexAt(info, targetList);
+        if (info.paletteType) {
+          var node = makePaletteNode(info.paletteType, project);
+          if (node) { targetList.splice(index, 0, node); }
+        } else {
+          var existing = Model.findNodeByUid(project, info.uid);
+          if (existing) { Model.moveNode(project, existing, targetList, index); }
+        }
+        change();
+      }
+    });
+
     refresh();
   }
 
-  window.App = { init: init, refresh: refresh, getProject: function () { return project; } };
+  window.App = {
+    init: init, refresh: refresh, getProject: function () { return project; },
+    resolveDropList: resolveDropList, dropIndexAt: dropIndexAt, makePaletteNode: makePaletteNode
+  };
   document.addEventListener("DOMContentLoaded", init);
 })();

@@ -7,6 +7,8 @@
 })(typeof self !== "undefined" ? self : this, function (Catalog, Model) {
   "use strict";
 
+  var uidSeq = 0;
+
   function el(tag, cls, text) {
     var e = document.createElement(tag);
     if (cls) { e.className = cls; }
@@ -37,43 +39,50 @@
   function renderBlockList(container, nodes, project, opts) {
     container.innerHTML = "";
     nodes.forEach(function (node) {
+      if (!node.__uid) { node.__uid = "n" + (++uidSeq); }
       container.appendChild(renderNode(node, project, opts || {}));
     });
   }
 
   function renderNode(node, project) {
+    var root;
     if (node.kind === "delay") {
-      var d = el("div", "blk blk-delay", "延时 " + node.ms + " 毫秒");
-      return d;
-    }
-    if (node.kind === "action") {
+      root = el("div", "blk blk-delay", "延时 " + node.ms + " 毫秒");
+    } else if (node.kind === "action") {
       var obj = Model.findObject(project, node.objectId) || { name: "?" };
       var act = "?";
       try {
         act = Catalog.get(obj.type).actions.filter(function (a) { return a.id === node.action; })[0].label;
       } catch (e) { /* 忽略渲染错误 */ }
       var extra = node.value !== undefined ? " " + node.value : "";
-      return el("div", "blk blk-action", obj.name + " " + act + extra);
-    }
-    if (node.kind === "if") {
-      var wrap = el("div", "blk blk-if");
+      root = el("div", "blk blk-action", obj.name + " " + act + extra);
+    } else if (node.kind === "if") {
+      root = el("div", "blk blk-if");
       var obj2 = Model.findObject(project, node.cond.objectId) || { name: "?" };
       var condText = node.cond.kind === "state"
         ? obj2.name + " " + (node.cond.state === "pressed" ? "被按下" : "被松开")
         : obj2.name + " " + node.cond.op + " " + node.cond.value;
-      wrap.appendChild(el("div", "if-head", "如果 " + condText + " 则"));
+      root.appendChild(el("div", "if-head", "如果 " + condText + " 则"));
       var thenBox = el("div", "if-body");
+      thenBox.dataset.dropList = "then";
+      thenBox.dataset.ownerUid = node.__uid;
+      thenBox.dataset.listKind = "then";
       renderBlockList(thenBox, node.then, project);
-      wrap.appendChild(thenBox);
+      root.appendChild(thenBox);
       if (node.else.length > 0) {
-        wrap.appendChild(el("div", "if-else-head", "否则"));
+        root.appendChild(el("div", "if-else-head", "否则"));
         var elseBox = el("div", "if-body");
+        elseBox.dataset.dropList = "else";
+        elseBox.dataset.ownerUid = node.__uid;
+        elseBox.dataset.listKind = "else";
         renderBlockList(elseBox, node.else, project);
-        wrap.appendChild(elseBox);
+        root.appendChild(elseBox);
       }
-      return wrap;
+    } else {
+      root = el("div", "blk", "?");
     }
-    return el("div", "blk", "?");
+    root.dataset.nodeId = node.__uid;
+    return root;
   }
 
   function highlight(code) {

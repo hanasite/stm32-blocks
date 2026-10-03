@@ -69,3 +69,31 @@ test("序列化往返", () => {
   assert.deepEqual(back, p);
   assert.throws(() => Model.deserialize('{"version":99}'));
 });
+
+test("serialize 不包含 __uid（UI 临时属性）", () => {
+  const p = Model.newProject("t");
+  const d = Model.nodeDelay(5); d.__uid = "n1"; p.loop.push(d);
+  assert.ok(!Model.serialize(p).includes("__uid"));
+});
+
+test("findNodeByUid / deleteNodeByUid", () => {
+  const p = Model.newProject("t");
+  const a = Model.nodeDelay(1); a.__uid = "na";
+  const b = Model.nodeDelay(2); b.__uid = "nb";
+  p.loop.push(a, b);
+  assert.equal(Model.findNodeByUid(p, "nb"), b);
+  assert.equal(Model.deleteNodeByUid(p, "na"), a);
+  assert.equal(p.loop.length, 1);
+  assert.equal(p.loop[0], b);
+});
+
+test("删除对象后再新建不会产生 ID 冲突（回归：曾致 findObject 取错对象）", () => {
+  const p = Model.newProject("t");
+  const a = Model.addObject(p, "key", { pin: "PA1", pull: "up" });      // o1
+  Model.addObject(p, "led", { pin: "PC13", active: "high" });           // o2
+  Model.deleteObject(p, a.id);
+  const c = Model.addObject(p, "int", { init: 0 });
+  const ids = p.objects.map((o) => o.id);
+  assert.equal(new Set(ids).size, ids.length, "ID 必须唯一");
+  assert.equal(c.id, "o3");
+});

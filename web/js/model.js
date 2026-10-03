@@ -18,8 +18,12 @@
   }
 
   function addObject(project, type, params) {
-    var id = "o" + (project.objects.length + 1);
-    var obj = { id: id, name: defaultName(project, type), type: type, params: params || {} };
+    var maxN = 0;
+    project.objects.forEach(function (o) {
+      var n = parseInt(String(o.id).slice(1), 10);
+      if (n > maxN) { maxN = n; }
+    });
+    var obj = { id: "o" + (maxN + 1), name: defaultName(project, type), type: type, params: params || {} };
     project.objects.push(obj);
     return obj;
   }
@@ -122,7 +126,26 @@
   function condState(objectId, state) { return { kind: "state", objectId: objectId, state: state }; }
   function condCompare(objectId, op, value) { return { kind: "compare", objectId: objectId, op: op, value: value }; }
 
-  function serialize(project) { return JSON.stringify(project); }
+  function findNodeByUid(project, uid) {
+    var found = null;
+    walk(project.loop, function (node) {
+      if (!found && node.__uid === uid) { found = node; }
+    });
+    return found || undefined;
+  }
+
+  function deleteNodeByUid(project, uid) {
+    var node = findNodeByUid(project, uid);
+    if (!node) { return undefined; }
+    var list = findParentList(project, node);
+    if (!list) { return undefined; }
+    list.splice(list.indexOf(node), 1);
+    return node;
+  }
+
+  function serialize(project) {
+    return JSON.stringify(project, function (k, v) { return k === "__uid" ? undefined : v; });
+  }
   function deserialize(str) {
     var p = JSON.parse(str);
     if (p.version !== 1) { throw new Error("不支持的工程版本: " + p.version); }
@@ -133,6 +156,7 @@
     newProject: newProject, addObject: addObject, defaultName: defaultName,
     findObject: findObject, deleteObject: deleteObject, countReferences: countReferences,
     walk: walk, findParentList: findParentList, moveNode: moveNode,
+    findNodeByUid: findNodeByUid, deleteNodeByUid: deleteNodeByUid,
     nodeAction: nodeAction, nodeDelay: nodeDelay, nodeIf: nodeIf,
     condState: condState, condCompare: condCompare,
     serialize: serialize, deserialize: deserialize

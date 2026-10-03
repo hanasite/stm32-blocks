@@ -1500,13 +1500,13 @@ DragDrop.init({
 });
 ```
 
-- [ ] **Step 1: 渲染层改造（render.js）**——每个语句块元素：`el.dataset.nodeId = <节点在树中的唯一 id>`。
+- [x] **Step 1: 渲染层改造（render.js）**——每个语句块元素：`el.dataset.nodeId = <节点在树中的唯一 id>`。
 
 节点唯一 id 方案：渲染时给每个节点动态挂 `node.__uid`（纯 UI 属性，序列化前由 Model.serialize 用 replacer 剥掉 `__uid`——在 model.js 的 serialize 里加 `JSON.stringify(project, function (k, v) { return k === "__uid" ? undefined : v; })`，并补一条测试："serialize 不包含 __uid"）。
 
 `renderBlockList(container, nodes, project, opts)` 里给每个节点分配 uid（`"n" + (++render._seq)`），`renderNode` 输出的根元素 `dataset.nodeId`；if 块的三段容器分别 `data-drop-list` 且挂 `dataset.ownerUid` + `dataset.listKind`（"then"/"else"）；主循环容器 `#loop-slot` 已有 `data-drop-list="loop"`。
 
-- [ ] **Step 2: 写 `web/js/dragdrop.js`（全文）**
+- [x] **Step 2: 写 `web/js/dragdrop.js`（全文）**
 
 ```js
 (function (root) {
@@ -1606,7 +1606,7 @@ DragDrop.init({
 })(typeof self !== "undefined" ? self : this);
 ```
 
-- [ ] **Step 2b: `web/css/style.css` 追加拖拽相关样式**
+- [x] **Step 2b: `web/css/style.css` 追加拖拽相关样式**（另修：`#loop-slot { min-height: 240px }`——空画布高度 0 会接不住拖拽，产品级修复）
 
 ```css
 /* T7 拖拽 */
@@ -1625,7 +1625,7 @@ DragDrop.init({
 .trash-hot { transform: scale(1.15); background: #fecaca !important; }
 ```
 
-- [ ] **Step 3: app.js 接入**——`App` 增加：
+- [x] **Step 3: app.js 接入**——`App` 增加：
 
 ```js
 DragDrop.init({
@@ -1671,9 +1671,11 @@ DragDrop.init({
 - [ ] 拖到空白处松手 → 回弹（画面不变化但重渲染一次）
 - [ ] 把"如果"块拖到它自己肚子上 → 不生效（moveNode 拒绝）
 
-- [ ] **Step 5: 跑全量单测** → `node --test tests/`，Expected: 全绿（新增的 __uid 剥离、deleteNodeByUid 测试也过）
+- [x] **Step 5: 跑全量单测**（2026-10-03：`node --test` PASS ×24）
 
-- [ ] **Step 6: Commit**
+**执行记录（2026-10-03，自动化验证抓出的两个真 bug）**：① 空 `#loop-slot` 高度为 0 → 空画布接不住拖拽（CSS min-height 修复；dragdrop 同时加了"落在画布空白区域视同主循环"的宽容逻辑）；② `Model.addObject` 生成 ID 用"数组长度+1"，**删除对象后新建会 ID 撞车** → `findObject` 取错对象 → 条件代码生成崩溃（改为扫描现有最大编号 +1，已补回归单测）。两个 bug 都由无头浏览器仿真在真实操作序列中抓出。
+
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A && git commit -m "feat: 自研拖拽内核（拖出/吸附/重排/垃圾桶）与模型移动操作

@@ -36,6 +36,7 @@ dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
 #dlg-hint { color: #b42318; }
 
 /* T7 拖拽 */
+#loop-slot { min-height: 240px; }   /* 空画布时也要有落点区域（高度 0 会接不住拖拽） */
 .blk { border-radius: 8px; padding: 8px 12px; margin: 6px 0; color: #fff; font-size: 14px; }
 .blk-action { background: #2563eb; }
 .blk-delay { background: #ea7a1a; }

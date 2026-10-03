@@ -1250,9 +1250,18 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
       "label": "Build",
       "type": "shell",
       "command": "cmd",
-      "args": ["/c", "env.bat && cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake/arm-gcc-toolchain.cmake && cmake --build build"],
+      "args": ["/c", ".\\build.bat"],
       "options": { "cwd": "${workspaceFolder}" },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        {
+          "owner": "arm-gcc",
+          "fileLocation": ["relative", "${workspaceFolder}"],
+          "pattern": {
+            "regexp": "^(.+):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
+            "file": 1, "line": 2, "column": 3, "severity": 4, "message": 5
+          }
+        }
+      ],
       "group": { "kind": "build", "isDefault": true }
     },
     {
@@ -1260,13 +1269,15 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
       "dependsOn": "Build",
       "type": "shell",
       "command": "cmd",
-      "args": ["/c", "env.bat && STM32_Programmer_CLI -c port=SWD -w build\\firmware.elf -v -rst"],
+      "args": ["/c", ".\\flash.bat"],
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": []
     }
   ]
 }
 ```
+
+**执行记录（2026-10-03 深夜修订，快照已同步为现状）**：① 原稿 args 的内联 cmake 命令已被 `build.bat`/`flash.bat` 方案取代（GBK .bat + cmake 非 ASCII 路径两坑的规避，见 Task7 后续执行记录）；② 原稿 `"problemMatcher": ["$gcc"]` 在用户 VSCode 上报"problemMatcher 引用无效: $gcc"（该名字由 C/C++ 扩展 cpptools 提供，未启用/未生效时不认；报错不阻塞构建，属噪音）——已改为**内联自定义匹配器**（owner `arm-gcc`，识别 `file:line:col: error|warning: msg` 的 GCC 输出格式），**不再依赖任何扩展**，任何干净机器可用。三处同步：`template/.vscode/tasks.json`、仓库根 `.vscode/tasks.json`、用户解压副本；template-data.js 已重建。
 
 - [x] **Step 2: 写 `.vscode/launch.json`（全文）**
 

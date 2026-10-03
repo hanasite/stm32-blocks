@@ -11,12 +11,17 @@
 
 #define DINO_COOLDOWN_MS 300   /* 跳跃冷却期（毫秒） */
 
+/* 钩子：跳跃输入参数传 DINO_JUMP_HOOK 时，改由 Dino_RequestJump() 在别处置位驱动
+   （方便用外层 if / 任意逻辑控制跳跃） */
+#define DINO_JUMP_HOOK 0
+
 typedef struct
 {
     int16_t  y;              /* 离地高度（像素） */
     int16_t  vy;             /* 竖直速度（像素/秒） */
     uint8_t  jumping;
     uint8_t  alive;
+    uint8_t  jump_req;       /* 跳跃钩子：请求置位，帧内消费一次 */
     int16_t  cactus_x;
     uint16_t score;
     uint32_t last_jump_ms;
@@ -27,6 +32,7 @@ typedef struct
 } Dino;
 
 void Dino_Init(Dino *d);
+void Dino_RequestJump(Dino *d);   /* 请求一次跳跃（下一帧生效，依旧受落地/冷却期约束） */
 void Dino_Frame(Dino *d, Oled *oled, uint8_t jump_pressed);
 
 #endif /* __BSP_DINO_H */

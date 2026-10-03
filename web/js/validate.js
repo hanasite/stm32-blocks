@@ -69,6 +69,7 @@
               }
               return;
             }
+            if (refId === "__hook__") { return; }   /* 外部钩子：特殊值，合法 */
             var okRef = project.objects.some(function (o) {
               if (o.id !== refId) { return false; }
               return pd.refType === "oled" ? o.type === "oled" : (o.type === "key" || o.type === "ir");

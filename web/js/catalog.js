@@ -129,14 +129,17 @@
       label: "小恐龙游戏", declare: "Dino",
       params: [],
       states: [],
-      actions: [{
-        id: "frame", label: "运行一帧",
-        params: [
-          { key: "oled", label: "显示到", paramType: "objref", refType: "oled" },
-          { key: "jump", label: "跳跃输入", paramType: "objref", refType: "input", allowNone: true }
-        ],
-        code: "Dino_Frame(&{n}, {oled}, {jump});"
-      }],
+      actions: [
+        {
+          id: "frame", label: "运行一帧",
+          params: [
+            { key: "oled", label: "显示到", paramType: "objref", refType: "oled" },
+            { key: "jump", label: "跳跃输入", paramType: "objref", refType: "input", allowNone: true }
+          ],
+          code: "Dino_Frame(&{n}, {oled}, {jump});"
+        },
+        { id: "jump", label: "请求跳跃", code: "Dino_RequestJump(&{n});" }
+      ],
       initCode: "Dino_Init(&{n})",
       comment: "小恐龙游戏(组件)"
     },

@@ -63,7 +63,7 @@ test("红外与 OLED：引脚映射、动作定义与接线提示", () => {
 test("小恐龙组件：动作定义与 objref 绑定参数", () => {
   const d = Catalog.get("dino");
   assert.equal(d.declare, "Dino");
-  assert.equal(d.actions.length, 1);
+  assert.equal(d.actions.length, 2);
   const fr = d.actions[0];
   assert.equal(fr.id, "frame");
   assert.equal(fr.params.length, 2);
@@ -72,4 +72,6 @@ test("小恐龙组件：动作定义与 objref 绑定参数", () => {
   assert.equal(fr.params[1].key, "jump");
   assert.equal(fr.params[1].refType, "input");
   assert.equal(fr.params[1].allowNone, true);
+  assert.equal(d.actions[1].id, "jump");
+  assert.ok(d.actions[1].code.includes("Dino_RequestJump"));
 });

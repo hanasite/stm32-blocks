@@ -63,7 +63,7 @@
           });
           var cur = node.refs[pd.key];
           var curOk = cur && pool.some(function (o) { return o.id === cur; });
-          if (cur === undefined || (cur !== "" && !curOk)) {
+          if (cur === undefined || (cur !== "" && cur !== "__hook__" && !curOk)) {
             node.refs[pd.key] = pool.length > 0 ? pool[0].id : "";
           }
         });
@@ -183,6 +183,7 @@
         }
         var opts2 = [];
         if (pd.allowNone) { opts2.push({ v: "", label: "（不接）" }); }
+        if (pd.refType === "input") { opts2.push({ v: "__hook__", label: "外部钩子" }); }
         opts2 = opts2.concat(pool.map(function (o) { return { v: o.id, label: o.name }; }));
         var refSel = selectOf(opts2, node.refs[pd.key] || "");
         refSel.onchange = function () {

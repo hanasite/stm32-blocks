@@ -156,6 +156,9 @@ test("小恐龙组件：多参数绑定生成代码（红外/按键/不接/缺�
   frame.refs.jump = "";
   assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, &oled1, 0);"));
 
+  frame.refs.jump = "__hook__";   // 外部钩子：由「请求跳跃」置位
+  assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, &oled1, DINO_JUMP_HOOK);"));
+
   delete frame.refs.oled;
-  assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, 0, 0);"));
+  assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, 0, DINO_JUMP_HOOK);"));
 });

@@ -410,6 +410,11 @@ window.addEventListener("DOMContentLoaded", function () {
           && dinoBlock.textContent.indexOf("跳跃输入") >= 0
           && document.getElementById("code-view").textContent.indexOf("Dino_Frame(&dino9, &oled9, Ir_IsTriggered(&ir9));") >= 0,
           "code=" + (document.getElementById("code-view").textContent.match(/Dino_Frame[^;]*/) || [""])[0]);
+      var dJumpSel = document.querySelectorAll("#loop-slot > .blk:last-child select")[3];
+      dJumpSel.value = "__hook__";
+      dJumpSel.dispatchEvent(new Event("change", { bubbles: true }));
+      rec("edit-dino-hook", document.getElementById("code-view").textContent.indexOf("Dino_Frame(&dino9, &oled9, DINO_JUMP_HOOK);") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Dino_Frame[^;]*/) || [""])[0]);
 
       document.getElementById("btn-add-object").click();
       var ledBtn2 = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),

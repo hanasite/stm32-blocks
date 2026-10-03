@@ -95,6 +95,8 @@ test("小恐龙组件：未绑 OLED 报错、不接输入合法、悬空绑定�
   const oled = Model.addObject(p, "oled", {});
   frame.refs.oled = oled.id;
   assert.deepEqual(Validate.check(p).errors, []);    // OLED + 不接输入 => 合法
+  frame.refs.jump = "__hook__";
+  assert.deepEqual(Validate.check(p).errors, []);    // 外部钩子 => 合法
   frame.refs.jump = "o99";                            // 悬空输入
   codes = Validate.check(p).errors.map((x) => x.code);
   assert.ok(codes.includes("MISSING_REF"));

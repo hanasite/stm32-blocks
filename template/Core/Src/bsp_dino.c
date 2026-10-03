@@ -69,11 +69,11 @@ static void draw_dino(Dino *d)
 static void draw_cactus(Dino *d)
 {
     int16_t x = d->cactus_x;
-    fill_rect(x + 1, GROUND_Y - 15, 4, 15);    /* 主干 */
-    fill_rect(x - 2, GROUND_Y - 10, 3, 6);     /* 左臂 */
-    fill_rect(x - 1, GROUND_Y - 6, 3, 2);
-    fill_rect(x + 5, GROUND_Y - 12, 3, 6);     /* 右臂 */
-    fill_rect(x + 4, GROUND_Y - 8, 3, 2);
+    fill_rect(x + 1, GROUND_Y - 11, 4, 11);    /* 主干（11px 高，和小恐龙比例协调） */
+    fill_rect(x - 2, GROUND_Y - 8, 3, 5);      /* 左臂 */
+    fill_rect(x - 1, GROUND_Y - 5, 3, 2);
+    fill_rect(x + 5, GROUND_Y - 9, 3, 5);      /* 右臂 */
+    fill_rect(x + 4, GROUND_Y - 6, 3, 2);
 }
 
 static void dino_revive(Dino *d, uint32_t now)
@@ -93,6 +93,7 @@ void Dino_Init(Dino *d)
     d->vy = 0;
     d->jumping = 0;
     d->alive = 1;
+    d->jump_req = 0;
     d->cactus_x = 110;
     d->score = 0;
     d->last_jump_ms = 0;
@@ -100,6 +101,11 @@ void Dino_Init(Dino *d)
     d->rng = 0x1234ABCDu ^ HAL_GetTick();
     d->last_tick_ms = HAL_GetTick();
     d->leg_phase = 0;
+}
+
+void Dino_RequestJump(Dino *d)
+{
+    d->jump_req = 1;
 }
 
 void Dino_Frame(Dino *d, Oled *oled, uint8_t jump_pressed)
@@ -111,10 +117,14 @@ void Dino_Frame(Dino *d, Oled *oled, uint8_t jump_pressed)
     if (dt > 100) { dt = 100; }               /* 卡顿保护 */
     d->last_tick_ms = now;
 
+    /* 跳跃输入 = 参数直连 或 钩子请求（每帧消费一次） */
+    uint8_t want = (jump_pressed || d->jump_req) ? 1 : 0;
+    d->jump_req = 0;
+
     if (d->alive)
     {
         /* 跳跃：输入 + 已落地 + 冷却期 */
-        if (jump_pressed && !d->jumping && (now - d->last_jump_ms) >= DINO_COOLDOWN_MS)
+        if (want && !d->jumping && (now - d->last_jump_ms) >= DINO_COOLDOWN_MS)
         {
             d->vy = JUMP_VY;
             d->jumping = 1;
@@ -135,9 +145,9 @@ void Dino_Frame(Dino *d, Oled *oled, uint8_t jump_pressed)
             d->score++;
         }
 
-        /* 碰撞：最低像素 (55 - y) 与仙人掌顶 (GROUND_Y-15=41) 相交则算撞；
-           留 1 行擦边豁免 -> y >= 14 视为已越过 */
-        if (d->cactus_x < DINO_X + 16 && d->cactus_x + CACTUS_W > DINO_X && d->y < 14)
+        /* 碰撞：最低像素 (55 - y) 与仙人掌顶 (GROUND_Y-11=45) 相交则算撞；
+           留 1 行擦边豁免 -> y >= 11 视为已越过 */
+        if (d->cactus_x < DINO_X + 16 && d->cactus_x + CACTUS_W > DINO_X && d->y < 11)
         {
             d->alive = 0;
             d->crash_ms = now;

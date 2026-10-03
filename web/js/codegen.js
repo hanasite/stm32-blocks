@@ -76,6 +76,8 @@
             var refObj = refId ? Model.findObject(project, refId) : null;
             if (pd.refType === "oled") {
               map[pd.key] = refObj ? "&" + refObj.name : "0";   /* 缺绑定给 0，引擎侧容错 */
+            } else if (refId === "__hook__") {
+              map[pd.key] = "DINO_JUMP_HOOK";                  /* 外部钩子：由「请求跳跃」置位 */
             } else if (refObj && refObj.type === "ir") {
               map[pd.key] = "Ir_IsTriggered(&" + refObj.name + ")";
             } else if (refObj && refObj.type === "key") {

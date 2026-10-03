@@ -10,7 +10,7 @@ void user_setup(void)
 {
     Key_Init(&key1, GPIOA, GPIO_PIN_1, PULL_UP);
     Led_Init(&led1, GPIOC, GPIO_PIN_13, ACTIVE_LOW);
-    Buzzer_Init(&buzzer1, GPIOB, GPIO_PIN_1, ACTIVE_LOW);
+    Buzzer_Init(&buzzer1, GPIOB, GPIO_PIN_1, ACTIVE_HIGH);
     Servo_Init(&servo1, TIM2, TIM_CHANNEL_1);
 }
 

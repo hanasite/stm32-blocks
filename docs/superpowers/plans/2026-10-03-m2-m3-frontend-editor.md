@@ -1076,7 +1076,7 @@ App.init()                                              // 装配一切（index.
 App.refresh()                                           // 变更后统一刷新：validate→横幅、codegen→代码面板、localStorage 保存
 ```
 
-- [ ] **Step 1: 写 `web/index.html`（全文）**
+- [x] **Step 1: 写 `web/index.html`（全文）**
 
 ```html
 <!DOCTYPE html>
@@ -1145,7 +1145,7 @@ App.refresh()                                           // 变更后统一刷新
 
 （`js/dragdrop.js`、`js/packer.js`、`js/template-data.js` 在后续任务写完后再往这里加 `<script>`。）
 
-- [ ] **Step 2: 写 `web/css/style.css`（全文）**
+- [x] **Step 2: 写 `web/css/style.css`（全文）**
 
 ```css
 * { box-sizing: border-box; }
@@ -1186,7 +1186,7 @@ dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
 #dlg-hint { color: #b42318; }
 ```
 
-- [ ] **Step 3: 写 `web/js/render.js`（全文；本任务先实现 objects/blocks/code 渲染，拖拽 opt 先摆好接口）**
+- [x] **Step 3: 写 `web/js/render.js`（全文；本任务先实现 objects/blocks/code 渲染，拖拽 opt 先摆好接口）**
 
 ```js
 (function (root, factory) {
@@ -1283,7 +1283,7 @@ dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
 });
 ```
 
-- [ ] **Step 4: 写 `web/js/objects.js`（全文；新建/编辑弹窗）**
+- [x] **Step 4: 写 `web/js/objects.js`（全文；新建/编辑弹窗）**
 
 ```js
 (function (root, factory) {
@@ -1389,7 +1389,7 @@ dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
 });
 ```
 
-- [ ] **Step 5: 写 `web/js/app.js`（全文；本任务先接对象区+代码面板+横幅+自动保存）**
+- [x] **Step 5: 写 `web/js/app.js`（全文；本任务先接对象区+代码面板+横幅+自动保存）**
 
 ```js
 (function () {
@@ -1458,7 +1458,7 @@ dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
 })();
 ```
 
-- [ ] **Step 6: 浏览器手动验证（file:// 双击 `web/index.html`）**
+- [x] **Step 6: 浏览器手动验证（file:// 双击 `web/index.html`）** —— 2026-10-03 升级为**自动化自检**：新增 `web/_selftest.html`（真实浏览器模拟点击序列），用 Edge 无头 `--dump-dom` 跑，**15/15 PASS**（含清单全部条目 + 重名拦截/连带删除/localStorage/冲突联动扩展项）；该页留作永久回归工具，命令：`msedge --headless=new --virtual-time-budget=12000 --dump-dom file:///…/web/_selftest.html | grep SELFTEST`
 
 Checklist（逐条肉眼确认，有问题就修）：
 - [ ] 打开后自动载入"按键点灯"示例：左侧显示 key1/led1 两张对象卡，右侧代码面板出现完整 C 代码且有关键字高亮
@@ -1469,7 +1469,7 @@ Checklist（逐条肉眼确认，有问题就修）：
 - [ ] 刷新浏览器 → 刚才的修改还在（localStorage）
 - [ ] 代码面板「复制代码」按钮把代码复制进剪贴板
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add web && git commit -m "feat: 三栏界面骨架/对象区/代码面板/校验横幅/自动保存

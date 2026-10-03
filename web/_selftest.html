@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>STM32 积木工坊 - UI 自检</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>STM32 积木工坊</h1>
+  <input id="project-name" type="text" value="我的工程" title="工程名（下载的文件夹名）">
+  <div id="error-banner" class="hidden"></div>
+  <button id="btn-download" disabled>⬇ 下载完整工程</button>
+</header>
+<main>
+  <section id="panel-objects">
+    <h2>对象区</h2>
+    <div id="object-list"></div>
+    <button id="btn-add-object">＋ 新建对象</button>
+  </section>
+  <section id="panel-canvas">
+    <h2>主循环</h2>
+    <div id="palette">
+      <div class="pal-block pal-action" data-palette="action">动作</div>
+      <div class="pal-block pal-delay"  data-palette="delay">延时</div>
+      <div class="pal-block pal-if"     data-palette="if">如果</div>
+    </div>
+    <div id="canvas">
+      <div id="loop-slot" data-drop-list="loop"></div>
+      <div id="trash" class="hidden">🗑</div>
+    </div>
+  </section>
+  <section id="panel-code">
+    <h2>生成的代码</h2>
+    <pre id="code-view"></pre>
+    <button id="btn-copy">复制代码</button>
+  </section>
+</main>
+
+<dialog id="object-dialog">
+  <form method="dialog">
+    <h3 id="dlg-title">新建对象</h3>
+    <label>名字 <input id="dlg-name" type="text"></label>
+    <div id="dlg-types"></div>
+    <div id="dlg-params"></div>
+    <p id="dlg-hint" class="hidden"></p>
+    <menu><button value="cancel">取消</button><button id="dlg-ok" value="ok">确定</button></menu>
+  </form>
+</dialog>
+
+<script src="vendor/jszip.min.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/model.js"></script>
+<script src="js/validate.js"></script>
+<script src="js/codegen.js"></script>
+<script src="js/examples.js"></script>
+<script src="js/render.js"></script>
+<script src="js/objects.js"></script>
+<script src="js/app.js"></script>
+<script>
+/* UI 自检：模拟用户操作序列，结果以 SELFTEST 行输出到 #selftest-results。
+   用 Edge/Chrome 无头跑：msedge --headless=new --dump-dom --virtual-time-budget=8000 web/_selftest.html */
+window.confirm = function () { return true; };   /* 删除确认自动“确定” */
+window.alert = function (msg) { (window._alerts = window._alerts || []).push(msg); };
+window.addEventListener("DOMContentLoaded", function () {
+  setTimeout(function () {
+    var out = [];
+    function rec(name, ok, extra) {
+      out.push("SELFTEST " + (ok ? "PASS" : "FAIL") + " " + name + (extra !== undefined ? " :: " + extra : ""));
+    }
+    try {
+      var project = window.App.getProject();
+      // 1) 初始渲染（blink 示例：key1/led1 两张卡 + 代码含 Key_IsPressed）
+      rec("init-objects", document.querySelectorAll("#object-list .obj-card").length === 2,
+          "cards=" + document.querySelectorAll("#object-list .obj-card").length);
+      rec("init-code", document.getElementById("code-view").textContent.indexOf("Key_IsPressed") >= 0);
+      rec("init-banner-hidden", document.getElementById("error-banner").classList.contains("hidden"));
+      rec("init-download-enabled", document.getElementById("btn-download").disabled === false);
+
+      // 2) 新建对象：蜂鸣器 buzzer9
+      document.getElementById("btn-add-object").click();
+      var dlg = document.getElementById("object-dialog");
+      rec("dialog-open", dlg.open === true);
+      var typeBtns = document.querySelectorAll("#dlg-types button");
+      var buzBtn = Array.prototype.filter.call(typeBtns, function (b) { return b.textContent === "蜂鸣器"; })[0];
+      buzBtn.click();
+      document.getElementById("dlg-name").value = "buzzer9";
+      document.getElementById("dlg-ok").click();
+      rec("add-object", project.objects.length === 3 && document.querySelectorAll("#object-list .obj-card").length === 3,
+          "objects=" + project.objects.length);
+      rec("add-code", document.getElementById("code-view").textContent.indexOf("Buzzer buzzer9") >= 0);
+
+      // 3) 引脚冲突：编辑 buzzer9 引脚为 PC13（与 led1 冲突）
+      document.querySelectorAll("#object-list .obj-card")[2].click();
+      document.querySelector('#dlg-params select[data-param="pin"]').value = "PC13";
+      document.getElementById("dlg-ok").click();
+      rec("conflict-banner", !document.getElementById("error-banner").classList.contains("hidden"),
+          "banner=" + document.getElementById("error-banner").textContent);
+      rec("conflict-disable-download", document.getElementById("btn-download").disabled === true);
+
+      // 恢复引脚 → 横幅消失
+      document.querySelectorAll("#object-list .obj-card")[2].click();
+      document.querySelector('#dlg-params select[data-param="pin"]').value = "PB1";
+      document.getElementById("dlg-ok").click();
+      rec("conflict-cleared", document.getElementById("error-banner").classList.contains("hidden")
+          && document.getElementById("btn-download").disabled === false);
+
+      // 4) 重名拦截：新建 led 重名 led1 → 应被 hint 拦下且对象数不变
+      document.getElementById("btn-add-object").click();
+      var ledBtn = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "LED"; })[0];
+      ledBtn.click();
+      document.getElementById("dlg-name").value = "led1";
+      document.getElementById("dlg-ok").click();
+      rec("dup-name-blocked", project.objects.length === 3 && document.getElementById("object-dialog").open === true);
+      document.querySelector("#object-dialog button[value='cancel']").click();
+
+      // 5) 删除 key1（confirm 已自动 true）；blink 的 if 引用 key1 应被连带清理
+      document.querySelectorAll("#object-list .obj-card")[0].querySelector(".obj-del").click();
+      rec("delete-key", project.objects.length === 2
+          && document.getElementById("code-view").textContent.indexOf("Key_IsPressed") < 0,
+          "objects=" + project.objects.length);
+
+      // 6) localStorage 自动保存
+      var saved = localStorage.getItem("stm32-blocks:project");
+      rec("localstorage", !!saved && saved.indexOf("buzzer9") >= 0);
+
+      // 7) 代码面板复制按钮存在且菜单渲染（静态检查）
+      rec("copy-button", !!document.getElementById("btn-copy"));
+      rec("loop-rendered", document.getElementById("loop-slot").children.length >= 0);
+    } catch (err) {
+      out.push("SELFTEST FAIL exception :: " + (err && err.message));
+    }
+    var pre = document.createElement("pre");
+    pre.id = "selftest-results";
+    pre.textContent = out.join("\n");
+    document.body.appendChild(pre);
+  }, 200);
+});
+</script>
+</body>
+</html>

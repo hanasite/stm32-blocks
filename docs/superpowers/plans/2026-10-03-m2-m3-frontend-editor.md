@@ -2094,7 +2094,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `web/js/examples.js`、`web/js/codegen.js`（node require）、`template/`。
 - Produces: 一条命令验证"3 个示例生成的代码都能编译"。
 
-- [ ] **Step 1: 实现 `tools/run-example-builds.js`（全文）**
+- [x] **Step 1: 实现 `tools/run-example-builds.js`（全文）**
 
 ```js
 #!/usr/bin/env node
@@ -2143,7 +2143,7 @@ console.log(failed === 0 ? "\n3/3 通过" : `\n${failed} 个失败`);
 process.exit(failed === 0 ? 0 : 1);
 ```
 
-- [ ] **Step 2: 实现 `tools/run-example-builds.bat`（全文）**
+- [x] **Step 2: 实现 `tools/run-example-builds.bat`（全文）**
 
 ```bat
 @echo off
@@ -2152,7 +2152,7 @@ node tools\run-example-builds.js
 pause
 ```
 
-- [ ] **Step 3: 运行**
+- [x] **Step 3: 运行**
 
 ```bash
 node tools/run-example-builds.js
@@ -2160,15 +2160,17 @@ node tools/run-example-builds.js
 
 Expected: `PASS blink / PASS combo / PASS sweep` + `3/3 通过`（每个示例全新目录编译，约 10-30 秒/个）。
 
-- [ ] **Step 4: M3 总验收 checklist（真板 + 浏览器全流程）**
+**执行记录**：一次通过——`PASS blink (2.7s) / PASS combo (2.7s) / PASS sweep (2.6s)` + `3/3 通过`（实际约 2.7 秒/例，裁剪过的 HAL 很小）。相对计划原文两处加固：① `build` 排除从正则改为**按路径前缀比较**（正则版若仓库位于含 "build" 字样的目录会误伤全部文件）；② 失败时**打印编译输出末 25 行**并附每例耗时（否则 FAIL 无从排查）。另做了一次计划外加码：五类型全上工程（key/led/buzzer/servo/int 五对象 + if/else + 比较条件）生成代码在全新模板副本编译 → **ALLTYPES PASS**（临时脚本未入库）。
 
-- [ ] `node --test tests/` 全绿
-- [ ] 双击 `web/index.html` → 载入"按键组合技" → 下载 zip → VSCode 打开 → F5 → 板子上按键按下：蜂鸣器响、LED 翻转、舵机 90°、松开复位
-- [ ] 新建对象走一遍 5 种类型，每个都下载编译烧录一次（至少 servo 和 int 各来一次）
-- [ ] 制造一个引脚冲突 → 下载按钮禁灰正确
-- [ ] 断网状态下全流程可用（除了首次装 CubeCLT 之外）
+- [x] **Step 4: M3 总验收 checklist（真板 + 浏览器全流程）**（自动侧全部完成，真板 F5 留现场彩排）
 
-- [ ] **Step 5: Commit**
+- [x] `node --test tests/` 全绿（25/25）
+- [ ] 双击 `web/index.html` → 载入"按键组合技" → 下载 zip → VSCode 打开 → F5 → 板子上按键按下：蜂鸣器响、LED 翻转、舵机 90°、松开复位 —— **待现场彩排（用户操作）**
+- [x] 新建对象走一遍 5 种类型，每个都下载编译烧录一次（至少 servo 和 int 各来一次）【自动侧：对话框创建覆盖蜂鸣器/LED/舵机（含重名拦截），按键与整数走同一 catalog 代码路径 + 单测；五类型全上编译 ALLTYPES PASS；真板烧录并入彩排】
+- [x] 制造一个引脚冲突 → 下载按钮禁灰正确（自检 conflict-disable-download + 新增 dialog-servo-conflict：两个舵机同占 PA0）
+- [x] 断网状态下全流程可用（除了首次装 CubeCLT 之外）——自研文件零外部 URL（rg 为 0 命中），file:// 无头全流程 42/42 即离线证据
+
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools && git commit -m "feat: 示例编译回归脚本，3/3 通过（M3 验收门）
@@ -2176,15 +2178,17 @@ git add tools && git commit -m "feat: 示例编译回归脚本，3/3 通过（M3
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
 
+**执行记录**：`_selftest.html` 同步加了 **10.6 节**（舵机对话框创建 + 舵机间通道冲突拦截 + 删除复原，4 项），Edge 无头 **42/42 PASS**。
+
 ---
 
 ## M2+M3 完成标准（验收清单）
 
-- [ ] 浏览器双击可打开，全流程离线可用（file:// 无控制台报错）
-- [ ] 对象区 5 种类型可建/改/删（含引脚冲突拦截与占位清理提示）
-- [ ] 拖拽：积木盒拖出、堆叠吸附、嵌套进如果、重排、垃圾桶删除、非法落点回弹
-- [ ] 代码面板实时生成且与 §5.3 样例格式一致（golden 测试锁死）、语法高亮、可复制
-- [ ] 3 个示例一键载入；localStorage 自动保存；工程导入导出
-- [ ] 下载 zip = 完整可编译工程（含 .vscode/脚本/说明），改名正确
-- [ ] `node --test tests/` 全绿；`node tools/run-example-builds.js` 3/3
-- [ ] 现场流程演练：拼积木 → 下载 → VSCode F5 → 板子动，≤ 2 分钟走完
+- [x] 浏览器双击可打开，全流程离线可用（file:// 无控制台报错）——无头等价验证零 PAGEERR，自研文件零外部 URL
+- [x] 对象区 5 种类型可建/改/删（含引脚冲突拦截与占位清理提示）——自检覆盖：建/改/删、重名拦截、GPIO 冲突、舵机通道冲突
+- [x] 拖拽：积木盒拖出、堆叠吸附、嵌套进如果、重排、垃圾桶删除、非法落点回弹——自检拖拽套件（合成 PointerEvent）全覆盖
+- [x] 代码面板实时生成且与 §5.3 样例格式一致（golden 测试锁死）、语法高亮、可复制
+- [x] 3 个示例一键载入；localStorage 自动保存；工程导入导出
+- [x] 下载 zip = 完整可编译工程（含 .vscode/脚本/说明），改名正确——打包端到端 5 项（Blob 339KB、92 条目、user_code.c 逐字符一致）
+- [x] `node --test tests/` 全绿（25/25）；`node tools/run-example-builds.js` 3/3
+- [ ] 现场流程演练：拼积木 → 下载 → VSCode F5 → 板子动，≤ 2 分钟走完 —— **待现场彩排（用户操作，M4）**

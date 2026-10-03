@@ -293,6 +293,32 @@ window.addEventListener("DOMContentLoaded", function () {
       blk0.dispatchEvent(new MouseEvent("mouseleave"));
       var hlAfter = document.querySelectorAll("#code-view .code-hl").length;
       rec("hover-highlight", hlCount > 0 && hlAfter === 0, "hl=" + hlCount + " after=" + hlAfter);
+
+      // 10.6) 舵机对话框创建（覆盖 5 种类型的最后一种）+ 跨类型引脚冲突（两个舵机同占 PA0）
+      var beforeCnt = project.objects.length;
+      document.getElementById("btn-add-object").click();
+      var srvBtn = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "舵机"; })[0];
+      srvBtn.click();
+      document.getElementById("dlg-name").value = "servo9";
+      document.querySelector('#dlg-params select[data-param="channel"]').value = "TIM1_CH1";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-servo-add", project.objects.length === beforeCnt + 1
+          && document.getElementById("code-view").textContent.indexOf("Servo_Init(&servo9") >= 0,
+          "objs=" + project.objects.length);
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].click();
+      document.querySelector('#dlg-params select[data-param="channel"]').value = "TIM2_CH1";  // 与 servo1 同占 PA0
+      document.getElementById("dlg-ok").click();
+      rec("dialog-servo-conflict", !document.getElementById("error-banner").classList.contains("hidden")
+          && document.getElementById("btn-download").disabled === true,
+          "banner=" + document.getElementById("error-banner").textContent);
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].click();
+      document.querySelector('#dlg-params select[data-param="channel"]').value = "TIM1_CH1";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-servo-conflict-cleared", document.getElementById("error-banner").classList.contains("hidden")
+          && document.getElementById("btn-download").disabled === false);
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
+      rec("dialog-servo-delete", project.objects.length === beforeCnt, "objs=" + project.objects.length);
     } catch (err) {
       out.push("SELFTEST FAIL exception :: " + (err && err.message));
     }

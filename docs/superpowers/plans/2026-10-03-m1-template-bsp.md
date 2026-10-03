@@ -1429,11 +1429,11 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 ## M1 完成标准（验收清单）
 
-- [ ] `template/` 完整：CubeCLT 一条命令可编译（0 error），`build/firmware.elf` 生成
+- [x] `template/` 完整：CubeCLT 一条命令可编译（0 error），`build/firmware.elf` 生成（2026-10-03 通过，组合冒烟 FLASH 8636B / 64K）
 - [ ] ST-Link 可烧录，`STM32_Programmer_CLI` 输出 `Download verified successfully`
 - [ ] 组合冒烟在真板跑通（按键→LED+蜂鸣器+舵机）
 - [ ] VSCode F5 与 `编译烧录.bat` 两条路径都可用
-- [ ] BSP 四个驱动 API 与设计文档 §4.5 完全一致（M2 生成器将按此生成代码）
+- [x] BSP 四个驱动 API 与设计文档 §4.5 完全一致（M2 生成器将按此生成代码）
 
 ## M2 接口冻结（本计划交付给 M2 的契约）
 

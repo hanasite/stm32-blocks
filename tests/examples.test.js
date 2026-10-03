@@ -4,13 +4,21 @@ const Examples = require("../web/js/examples.js");
 const Validate = require("../web/js/validate.js");
 const Codegen = require("../web/js/codegen.js");
 
-test("四个示例都存在且校验通过", () => {
-  assert.equal(Examples.list().length, 4);
+test("五个示例都存在且校验通过", () => {
+  assert.equal(Examples.list().length, 5);
   Examples.list().forEach((e) => {
     const p = Examples.load(e.id);
     assert.equal(Validate.check(p).errors.length, 0, e.id + " 应无校验错误");
     assert.ok(Codegen.generate(p).includes("void user_loop(void)"));
   });
+});
+
+test("marquee 示例：变量驱动进度、满 100 归零", () => {
+  const code = Codegen.generate(Examples.load("marquee"));
+  assert.ok(code.includes("if (count1 < 100) {"));
+  assert.ok(code.includes("count1 = count1 + 1;"));
+  assert.ok(code.includes("count1 = 0;"));
+  assert.ok(code.includes("Oled_Marquee(&oled1, count1);"));
 });
 
 test("irled 示例包含红外条件与 OLED 大字体显示", () => {

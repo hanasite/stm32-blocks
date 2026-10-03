@@ -63,11 +63,27 @@
     return p;
   }
 
+  function marqueeLoop() {
+    var p = Model.newProject("跑马灯进度圈");
+    var oled = Object.assign(Model.addObject(p, "oled", {}), { id: "o1", name: "oled1" });
+    var cnt = Object.assign(Model.addObject(p, "int", { init: 0 }), { id: "o2", name: "count1" });
+    var mq = Model.nodeAction(oled.id, "marquee", 0);
+    mq.varId = cnt.id;
+    p.loop.push(
+      Model.nodeIf(Model.condCompare(cnt.id, "<", 100),
+        [Model.nodeAction(cnt.id, "add", 1)],
+        [Model.nodeAction(cnt.id, "set", 0)]),
+      mq,
+      Model.nodeDelay(50));
+    return p;
+  }
+
   var ALL = [
     { id: "blink", label: "按键点灯", build: blink },
     { id: "combo", label: "按键组合技", build: combo },
     { id: "sweep", label: "舵机来回摆", build: sweep },
-    { id: "irled", label: "红外感应灯", build: irLed }
+    { id: "irled", label: "红外感应灯", build: irLed },
+    { id: "marquee", label: "跑马灯进度圈", build: marqueeLoop }
   ];
 
   function list() { return ALL.map(function (e) { return { id: e.id, label: e.label }; }); }

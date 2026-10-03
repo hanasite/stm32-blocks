@@ -1,4 +1,4 @@
-/* user_code.c — M1 诊断版 v4：OLED 仪表盘 + OLED 失败时 LED 报错码（由冒烟版/生成器最终覆盖） */
+/* user_code.c — M1 诊断版 v5：OLED 仪表盘 + LED 报错码 + RAM 信标（验证代码是否真的在跑） */
 #include "user_app.h"
 #include "bsp_ssd1306.h"
 
@@ -8,6 +8,13 @@ Key    key1;
 Led    led1;
 Buzzer buzzer1;
 Servo  servo1;
+
+/* RAM 信标：放在 .bss 之外（启动不清零、复位不清除），
+   远程经 ST-Link 读取即可判定代码有没有执行过/在不在跑 */
+#define BEACON_MAGIC_ADDR  0x20004C00u   /* user_setup 到达标记 */
+#define BEACON_COUNT_ADDR  0x20004C04u   /* user_loop 计数 */
+static volatile uint32_t *beacon_magic = (volatile uint32_t *)BEACON_MAGIC_ADDR;
+static volatile uint32_t *beacon_count = (volatile uint32_t *)BEACON_COUNT_ADDR;
 
 static void put_u32(char *out, uint32_t v, uint8_t digits)
 {
@@ -24,6 +31,7 @@ static char line[24];
 
 void user_setup(void)
 {
+    *beacon_magic = 0xB0071234u;
     Key_Init(&key1, GPIOA, GPIO_PIN_1, PULL_UP);
     Led_Init(&led1, GPIOC, GPIO_PIN_13, ACTIVE_LOW);
     Buzzer_Init(&buzzer1, GPIOB, GPIO_PIN_1, ACTIVE_LOW);
@@ -33,6 +41,7 @@ void user_setup(void)
 
 void user_loop(void)
 {
+    (*beacon_count)++;
     uint8_t pressed = Key_IsPressed(&key1);
 
     if (pressed) {

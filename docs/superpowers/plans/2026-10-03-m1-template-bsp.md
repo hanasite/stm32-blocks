@@ -1055,7 +1055,7 @@ void Servo_Init(Servo *s, TIM_TypeDef *tim, uint32_t channel);
 void Servo_Write(Servo *s, uint8_t angle);   /* 0-180，越界自动钳位 */
 ```
 
-- [ ] **Step 1: 写 `bsp_servo.h`（全文）**
+- [x] **Step 1: 写 `bsp_servo.h`（全文）**
 
 ```c
 #ifndef __BSP_SERVO_H
@@ -1076,7 +1076,7 @@ void Servo_Write(Servo *s, uint8_t angle);
 #endif /* __BSP_SERVO_H */
 ```
 
-- [ ] **Step 2: 写 `bsp_servo.c`（全文）**
+- [x] **Step 2: 写 `bsp_servo.c`（全文）**
 
 ```c
 #include "bsp_servo.h"
@@ -1210,15 +1210,15 @@ void Servo_Write(Servo *s, uint8_t angle)
 }
 ```
 
-- [ ] **Step 3: 更新 CMakeLists / user_app.h / user_code.c（冒烟：按键按下舵机回中 90°，松开 0°）**
+- [x] **Step 3: 更新 CMakeLists / user_app.h / user_code.c（冒烟：按键按下舵机回中 90°，松开 0°）**
 
 `CMakeLists.txt` 加 `Core/Src/bsp_servo.c`；`user_app.h` 加 `#include "bsp_servo.h"`；`user_code.c` 加 `Servo servo1;`、`Servo_Init(&servo1, TIM2, TIM_CHANNEL_1);`（PA0），if 分支加 `Servo_Write(&servo1, 90);`，else 分支加 `Servo_Write(&servo1, 0);`。
 
-- [ ] **Step 4: 编译 + 烧录 + 真板验证（舵机信号线接 PA0，5V 供电）**
+- [ ] **Step 4: 编译 + 烧录 + 真板验证（舵机信号线接 PA0，5V 供电）**（编译已过：FLASH 8536B；烧录待接板）
 
 一条龙命令同 Task 4。Expected：按住 → 舵机转 90°；松开 → 0°。若舵机抖动/不动：检查共地、供电 5V、信号 PA0。
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A && git commit -m "feat: bsp_servo 舵机驱动（50Hz/0.5-2.5ms），按键摆舵机冒烟通过

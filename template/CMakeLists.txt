@@ -20,6 +20,7 @@ set(CORE_SOURCES
   Core/Src/bsp_led.c
   Core/Src/bsp_key.c
   Core/Src/bsp_buzzer.c
+  Core/Src/bsp_servo.c
 )
 
 set(HAL_SOURCES

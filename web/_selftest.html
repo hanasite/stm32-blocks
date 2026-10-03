@@ -8,6 +8,7 @@
 <body>
 <header>
   <h1>STM32 积木工坊</h1>
+  <button id="btn-help" title="新手接线帮助：面包板结构、怎么供电、模块怎么接">❓ 接线帮助</button>
   <input id="project-name" type="text" value="我的工程" title="工程名（下载的文件夹名）">
   <select id="example-select"><option value="">载入示例…</option></select>
   <button id="btn-export">导出工程</button>
@@ -60,6 +61,71 @@
   <h3 id="log-title">编译中…</h3>
   <pre id="log-view"></pre>
   <menu><button id="log-close" type="button">关闭</button></menu>
+</dialog>
+
+<dialog id="help-dialog">
+  <h3>新手接线帮助</h3>
+  <div class="help-body">
+    <h4>1. 面包板的内部构造（记住三条规则）</h4>
+    <svg viewBox="0 0 640 250" class="bb-svg" role="img" aria-label="面包板结构示意图">
+      <defs>
+        <pattern id="bbcol" width="38" height="38" patternUnits="userSpaceOnUse">
+          <rect x="6" y="2" width="16" height="34" rx="8" fill="#dbeafe" stroke="#93c5fd"/>
+        </pattern>
+      </defs>
+      <rect x="20" y="10" width="600" height="230" rx="10" fill="#fbfdff" stroke="#e2e8f0"/>
+      <line x1="32" y1="26" x2="298" y2="26" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+      <line x1="342" y1="26" x2="608" y2="26" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+      <line x1="32" y1="40" x2="298" y2="40" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+      <line x1="342" y1="40" x2="608" y2="40" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+      <line x1="320" y1="18" x2="320" y2="48" stroke="#fca5a5" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="320" y="14" text-anchor="middle" font-size="11" fill="#dc2626" font-weight="bold">断开！左右不相通</text>
+      <rect x="54" y="58" width="532" height="38" fill="url(#bbcol)"/>
+      <rect x="168" y="58" width="16" height="34" rx="8" fill="none" stroke="#2563eb" stroke-width="2"/>
+      <line x1="184" y1="58" x2="184" y2="50" stroke="#2563eb"/>
+      <line x1="184" y1="50" x2="228" y2="50" stroke="#2563eb"/>
+      <text x="232" y="54" font-size="11" fill="#2563eb">一列 5 孔内部连通</text>
+      <rect x="40" y="100" width="560" height="20" fill="#f1f5f9"/>
+      <line x1="40" y1="100" x2="600" y2="100" stroke="#cbd5e1" stroke-dasharray="5 4"/>
+      <line x1="40" y1="120" x2="600" y2="120" stroke="#cbd5e1" stroke-dasharray="5 4"/>
+      <text x="320" y="114" text-anchor="middle" font-size="11" fill="#64748b">中央凹槽：上下两半互不相通（芯片要跨着凹槽插）</text>
+      <rect x="54" y="124" width="532" height="38" fill="url(#bbcol)"/>
+      <line x1="32" y1="184" x2="298" y2="184" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+      <line x1="342" y1="184" x2="608" y2="184" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+      <line x1="32" y1="198" x2="298" y2="198" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+      <line x1="342" y1="198" x2="608" y2="198" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+      <line x1="320" y1="176" x2="320" y2="206" stroke="#fca5a5" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="320" y="226" text-anchor="middle" font-size="11" fill="#475569">红轨 = 正极（3V3）· 蓝轨 = 负极（GND）· 每条轨左右两段不通 → 左右都要各接一组</text>
+    </svg>
+    <ul>
+      <li><b>一列 5 孔相连</b>：同一竖列（凹槽上、下各算一列）的 5 个孔内部是通的——元件一只脚插进去，同列任意孔都和它连着。</li>
+      <li><b>中央凹槽隔断</b>：凹槽上方和下方互不相通，所以芯片/元件要<b>跨着凹槽</b>插。</li>
+      <li><b>电源轨左右断开</b>：红轨（+）和蓝轨（−）在<b>中间都有断点，左半段和右半段不是一回事</b>——所以左右两段要<b>各接一组 3V3 / GND</b>。偷懒办法：红-红、蓝-蓝各飞一根短线<b>跨过中间的断点桥接</b>，就只引一组。</li>
+    </ul>
+    <h4>2. 先给面包板"通上电"</h4>
+    <ul>
+      <li>单片机 <b>3V3</b> 脚 → 面包板<b>红轨</b>；<b>GND</b> 脚 → <b>蓝轨</b>（左右两段都要，共 4 根线）。</li>
+      <li>之后所有模块的 VCC 插红轨、GND 插蓝轨，不用每个模块单独往单片机拉两根线。</li>
+      <li>用 ST-Link 供电时板子就不用再插 USB 了。</li>
+    </ul>
+    <h4>3. 各模块怎么接</h4>
+    <table>
+      <tr><th>模块</th><th>VCC</th><th>GND</th><th>信号</th></tr>
+      <tr><td>按键</td><td>—</td><td>一端插蓝轨</td><td>另一端 → PA1（配「上拉」，另一端接 GND）</td></tr>
+      <tr><td>红外传感器</td><td>红轨 3V3</td><td>蓝轨</td><td>OUT → PA2（多数模块低电平触发）</td></tr>
+      <tr><td>LED 小灯珠</td><td>长脚(+) 串 220Ω 到红轨</td><td>短脚(−) 接信号脚</td><td>配「低电平亮，另一端接 3V3」</td></tr>
+      <tr><td>蜂鸣器（有源）</td><td>红轨 3V3</td><td>蓝轨</td><td>信号 → PB1（高电平触发款）</td></tr>
+      <tr><td>舵机</td><td><b>接 5V</b>（从板子 5V 脚单独引，别进 3V3 红轨）</td><td>蓝轨共地</td><td>信号 → PA0</td></tr>
+      <tr><td>OLED 屏</td><td>红轨 3V3</td><td>蓝轨</td><td>SCL→PB8、SDA→PB9（接反也能自动识别）</td></tr>
+      <tr><td>板载 LED</td><td colspan="3">无需接线（PC13，低电平亮）</td></tr>
+    </table>
+    <h4>4. 下载线（ST-Link → 板子 SWD 四孔）</h4>
+    <ul>
+      <li>3V3 → 3V3、GND → GND、SWDIO → PA13、SWCLK → PA14（板子靠内侧的一排 4 个孔，有丝印）。</li>
+    </ul>
+    <p class="help-tip">接线口诀：<b>先断电再接</b>；红只进红轨、黑只进蓝轨；插完先检查一遍再上电。拿不准就把积木和接线都截图问学长学姐。</p>
+  </div>
+  <menu><button id="help-close" type="button">关 闭</button></menu>
 </dialog>
 
 <script src="vendor/jszip.min.js"></script>
@@ -150,6 +216,14 @@ window.addEventListener("DOMContentLoaded", function () {
       // 7) 代码面板复制按钮存在且菜单渲染（静态检查）
       rec("copy-button", !!document.getElementById("btn-copy"));
       rec("loop-rendered", document.getElementById("loop-slot").children.length >= 0);
+
+      // 7.5) 新手接线帮助弹窗
+      document.getElementById("btn-help").click();
+      var helpDlg = document.getElementById("help-dialog");
+      rec("help-dialog", helpDlg.open === true && helpDlg.textContent.indexOf("面包板") >= 0
+          && helpDlg.textContent.indexOf("断开") >= 0);
+      document.getElementById("help-close").click();
+      rec("help-close", helpDlg.open === false);
 
       // 8) 拖拽内核（合成指针事件：palette→画布 / 嵌套 / 自嵌套拒绝 / 垃圾桶删除）
       function pex(type, tgt, ex, ey) {

@@ -209,6 +209,10 @@
     if (btnFlash) { btnFlash.onclick = function () { runBridge("flash"); }; }
     var logClose = document.getElementById("log-close");
     if (logClose) { logClose.onclick = function () { document.getElementById("log-dialog").close(); }; }
+    var btnHelp = document.getElementById("btn-help");
+    if (btnHelp) { btnHelp.onclick = function () { document.getElementById("help-dialog").showModal(); }; }
+    var helpClose = document.getElementById("help-close");
+    if (helpClose) { helpClose.onclick = function () { document.getElementById("help-dialog").close(); }; }
     probeBridge();
 
     Examples.list().forEach(function (e) {

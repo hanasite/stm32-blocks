@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build (template)",
+      "type": "shell",
+      "command": "cmd",
+      "args": ["/c", "call \"${workspaceFolder}\\template\\build.bat\""],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": ["$gcc"],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "Build and Flash (template)",
+      "type": "shell",
+      "command": "cmd",
+      "args": ["/c", "call \"${workspaceFolder}\\template\\flash.bat\""],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}

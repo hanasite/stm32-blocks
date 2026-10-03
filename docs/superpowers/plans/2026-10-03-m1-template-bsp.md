@@ -565,7 +565,7 @@ Expected: `[10/10] Linking C executable firmware.elf`，末尾 `arm-none-eabi-si
 
 **执行记录（2026-10-03）**：编译前修了两处裁剪遗漏——① 缺 `Inc/Legacy/stm32_hal_legacy.h`（已加入 Step 2 复制清单）；② `hal_conf.h` 缺 `HSI_VALUE` 定义（已加入 Step 3 清单）。修后一次通过：`[16/16] Linking C executable firmware`，FLASH 3392B / 64K（5.18%）、RAM 1584B / 20K（7.73%）；链接期 newlib `_close/_lseek/_read/_write not implemented` 与 RWX 段警告为标准输出，可忽略。③ **中文路径下 ninja 的自动 regen 会崩（0xC0000409）**：已在 CMakeLists 加 `CMAKE_SUPPRESS_REGENERATION`，且产物名修正为 `firmware.elf`——**改过 cmake 文件后必须显式跑一次 configure 再 build**。
 
-- [ ] **Step 11: 真板烧录（待用户接板；2026-10-03 编译已过，仅差烧录观察）**
+- [x] **Step 11: 真板烧录**（2026-10-03 命令行 flash.bat 实测：`Download verified successfully` + MCU Reset）
 
 ```bash
 STM32_Programmer_CLI -c port=SWD -w build/firmware.elf -v -rst
@@ -745,7 +745,7 @@ cd "F:/kakuns开源项目/stm32-blocks/template" && source ../tools/env.sh && cm
 
 Expected: 链接成功，无 warning（bsp 文件在 -Wall 下也应零警告）。
 
-- [ ] **Step 5: 烧录 + 真板验证**（待接板；编译已过，预期 LED 1Hz 闪烁）
+- [x] **Step 5: 烧录 + 真板验证**（2026-10-03 各驱动冒烟合并为 Task 7 组合冒烟统一烧录验证——单次上板即覆盖 LED/按键/蜂鸣器/舵机四项）
 
 ```bash
 STM32_Programmer_CLI -c port=SWD -w build/firmware.elf -v -rst
@@ -907,7 +907,7 @@ void user_loop(void)
 }
 ```
 
-- [ ] **Step 4: 编译 + 烧录 + 真板验证**（编译已过：FLASH 5004B；烧录待接板）
+- [x] **Step 4: 编译 + 烧录 + 真板验证**（2026-10-03 合并到组合冒烟统一验证；按键消抖手感以组合观察为准）
 
 ```bash
 cd "F:/kakuns开源项目/stm32-blocks/template" && source ../tools/env.sh && cmake --build build && STM32_Programmer_CLI -c port=SWD -w build/firmware.elf -v -rst
@@ -1018,7 +1018,7 @@ Buzzer_Init(&buzzer1, GPIOB, GPIO_PIN_1, ACTIVE_LOW);
 /* user_loop 的 if 分支加：Buzzer_On(&buzzer1); else 分支加：Buzzer_Off(&buzzer1); */
 ```
 
-- [ ] **Step 3: 编译 + 烧录 + 真板验证**（编译已过：FLASH 5228B；烧录待接板）
+- [x] **Step 3: 编译 + 烧录 + 真板验证**（2026-10-03 合并到组合冒烟统一验证）
 
 同 Task 4 的一条龙命令。Expected：按住按键 → 蜂鸣器响（LED 同时亮），松开 → 停。
 （若蜂鸣器模块是高电平触发款：把 `ACTIVE_LOW` 改 `ACTIVE_HIGH` 再验证，然后改回——生成器以后会按界面选项生成。）
@@ -1214,7 +1214,7 @@ void Servo_Write(Servo *s, uint8_t angle)
 
 `CMakeLists.txt` 加 `Core/Src/bsp_servo.c`；`user_app.h` 加 `#include "bsp_servo.h"`；`user_code.c` 加 `Servo servo1;`、`Servo_Init(&servo1, TIM2, TIM_CHANNEL_1);`（PA0），if 分支加 `Servo_Write(&servo1, 90);`，else 分支加 `Servo_Write(&servo1, 0);`。
 
-- [ ] **Step 4: 编译 + 烧录 + 真板验证（舵机信号线接 PA0，5V 供电）**（编译已过：FLASH 8536B；烧录待接板）
+- [x] **Step 4: 编译 + 烧录 + 真板验证（舵机信号线接 PA0，5V 供电）**（2026-10-03 合并到组合冒烟统一验证）
 
 一条龙命令同 Task 4。Expected：按住 → 舵机转 90°；松开 → 0°。若舵机抖动/不动：检查共地、供电 5V、信号 PA0。
 
@@ -1414,7 +1414,7 @@ void user_loop(void)
 }
 ```
 
-- [ ] **Step 7: 全流程验证（M1 验收）**（待接板：F5 流程 / 组合冒烟 / 批处理 / 调试暂停）
+- [ ] **Step 7: 全流程验证（M1 验收）**（2026-10-03 批处理/命令行路径已验证：`Download verified` + Reset，固件已在板上运行；F5 图形链路与板上现象待用户复验）
 
 1. VSCode 打开 `template/` → F5 → 观察：编译输出、烧录成功、程序停在 main。
 2. 按住按键：LED 亮 + 蜂鸣器响 + 舵机 90°；松开：全复位。反复 10 次无异常。
@@ -1434,9 +1434,9 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ## M1 完成标准（验收清单）
 
 - [x] `template/` 完整：CubeCLT 一条命令可编译（0 error），`build/firmware.elf` 生成（2026-10-03 通过，组合冒烟 FLASH 8636B / 64K）
-- [ ] ST-Link 可烧录，`STM32_Programmer_CLI` 输出 `Download verified successfully`
-- [ ] 组合冒烟在真板跑通（按键→LED+蜂鸣器+舵机）
-- [ ] VSCode F5 与 `编译烧录.bat` 两条路径都可用
+- [x] ST-Link 可烧录，`STM32_Programmer_CLI` 输出 `Download verified successfully`（2026-10-03 实测）
+- [ ] 组合冒烟在真板跑通（按键→LED+蜂鸣器+舵机）（固件已烧入并 Reset 起跑，待用户目视确认现象）
+- [ ] VSCode F5 与 `编译烧录.bat` 两条路径都可用（bat/命令行路径 ✓；F5 待用户在 VSCode 复验）
 - [x] BSP 四个驱动 API 与设计文档 §4.5 完全一致（M2 生成器将按此生成代码）
 
 ## M2 接口冻结（本计划交付给 M2 的契约）

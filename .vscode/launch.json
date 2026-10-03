@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug (ST-Link) — template",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "stlink-gdb-server",
+      "cwd": "${workspaceFolder}/template",
+      "executable": "${workspaceFolder}/template/build/firmware.elf",
+      "stlinkGdbServerPath": "D:/STM32CubeCLT_1.18.0/STLink-gdb-server/bin/ST-LINK_gdbserver.exe",
+      "stm32cubeprogrammer": "D:/STM32CubeCLT_1.18.0/STM32CubeProgrammer/bin",
+      "interface": "swd",
+      "device": "STM32F103C8",
+      "runToEntryPoint": "main",
+      "preLaunchTask": "Build and Flash (template)"
+    }
+  ]
+}

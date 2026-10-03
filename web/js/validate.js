@@ -25,23 +25,44 @@
       }
     });
 
-    // 2) 引脚冲突（含舵机通道映射到的引脚）
+    // 2) 引脚冲突（含舵机通道映射、OLED 固定占用 PB8/PB9）
     var byPin = {};
     project.objects.forEach(function (o) {
-      var pin = Catalog.pinOfObject(o);
-      if (!pin) { return; }
-      if (byPin[pin]) { byPin[pin].push(o.id); } else { byPin[pin] = [o.id]; }
+      Catalog.pinsOfObject(o).forEach(function (pin) {
+        if (byPin[pin]) { byPin[pin].push(o.id); } else { byPin[pin] = [o.id]; }
+      });
     });
     Object.keys(byPin).forEach(function (pin) {
       if (byPin[pin].length > 1) {
-        var names = byPin[pin].map(function (id) {
-          var o = project.objects.filter(function (x) { return x.id === id; })[0];
-          return o ? o.name : id;
+        var owners = byPin[pin].map(function (id) {
+          return project.objects.filter(function (x) { return x.id === id; })[0];
         });
-        errors.push({ code: "PIN_CONFLICT", message: "引脚冲突：" + pin + " 被 " + names.join("、") + " 同时占用",
+        var names = owners.map(function (o) { return o ? o.name : "?"; });
+        var hasOled = owners.some(function (o) { return o && o.type === "oled"; });
+        errors.push({ code: "PIN_CONFLICT",
+                      message: "引脚冲突：" + pin + " 被 " + names.join("、") + " 同时占用"
+                               + (hasOled ? "（OLED 固定占用 PB8/PB9）" : ""),
                       objectIds: byPin[pin] });
       }
     });
+
+    // 3) 「显示变量」积木必须选中一个存在的整数对象
+    (function walkLoop(nodes) {
+      nodes.forEach(function (node) {
+        if (node.kind === "if") { walkLoop(node.then); walkLoop(node.else); return; }
+        if (node.kind !== "action") { return; }
+        var obj = project.objects.filter(function (o) { return o.id === node.objectId; })[0];
+        if (!obj) { return; }
+        var act = Catalog.get(obj.type).actions.filter(function (a) { return a.id === node.action; })[0];
+        if (!act || act.paramType !== "intref") { return; }
+        var varOk = node.varId && project.objects.some(function (o) { return o.id === node.varId && o.type === "int"; });
+        if (!varOk) {
+          errors.push({ code: "MISSING_VAR",
+                        message: "「" + obj.name + "」的「" + act.label + "」积木还没选整数对象",
+                        objectIds: [obj.id] });
+        }
+      });
+    })(project.loop);
 
     return { errors: errors };
   }

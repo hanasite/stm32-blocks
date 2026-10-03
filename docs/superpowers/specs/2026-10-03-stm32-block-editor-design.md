@@ -215,8 +215,8 @@ void Delay_ms(uint32_t ms);   /* HAL_Delay 封装 */
 #include "user_app.h"
 
 /* ===== 你创建的对象 ===== */
-Key    key1;      /* key1 = 按键(PA1, 上拉) */
-Led    led1;      /* led1 = LED(PC13, 高电平亮) */
+Key    key1;      /* key1 = 按键(PA1, 上拉，另一端接 GND) */
+Led    led1;      /* led1 = LED(PC13, 高电平亮，另一端接 GND) */
 Buzzer buzzer1;   /* buzzer1 = 蜂鸣器(PB1, 低电平响) */
 Servo  servo1;    /* servo1 = 舵机(TIM1_CH1) */
 int    count;     /* count = 整数(0) */
@@ -230,6 +230,7 @@ void user_setup(void)
     count = 0;
 }
 
+/* 主循环：单片机会从头到尾一直执行这一段（不断重复） */
 void user_loop(void)
 {
     if (Key_IsPressed(&key1)) {

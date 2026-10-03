@@ -48,10 +48,26 @@
     return p;
   }
 
+  function irLed() {
+    var p = Model.newProject("红外感应灯");
+    var ir = Object.assign(Model.addObject(p, "ir", { pin: "PA2", active: "low" }), { id: "o1", name: "ir1" });
+    var led = Object.assign(Model.addObject(p, "led", { pin: "PC13", active: "low" }), { id: "o2", name: "led1" });
+    var oled = Object.assign(Model.addObject(p, "oled", {}), { id: "o3", name: "oled1" });
+    p.loop.push(Model.nodeIf(Model.condState(ir.id, "detected"), [
+      Model.nodeAction(led.id, "on"),
+      Model.nodeAction(oled.id, "showyes")
+    ], [
+      Model.nodeAction(led.id, "off"),
+      Model.nodeAction(oled.id, "showno")
+    ]));
+    return p;
+  }
+
   var ALL = [
     { id: "blink", label: "按键点灯", build: blink },
     { id: "combo", label: "按键组合技", build: combo },
-    { id: "sweep", label: "舵机来回摆", build: sweep }
+    { id: "sweep", label: "舵机来回摆", build: sweep },
+    { id: "irled", label: "红外感应灯", build: irLed }
   ];
 
   function list() { return ALL.map(function (e) { return { id: e.id, label: e.label }; }); }

@@ -27,8 +27,8 @@ const EXPECTED = [
 "#include \"user_app.h\"",
 "",
 "/* ===== 你创建的对象 ===== */",
-"Key    key1;      /* key1 = 按键(PA1, 上拉) */",
-"Led    led1;      /* led1 = LED(PC13, 高电平亮) */",
+"Key    key1;      /* key1 = 按键(PA1, 上拉，另一端接 GND) */",
+"Led    led1;      /* led1 = LED(PC13, 高电平亮，另一端接 GND) */",
 "Buzzer buzzer1;   /* buzzer1 = 蜂鸣器(PB1, 低电平响) */",
 "Servo  servo1;    /* servo1 = 舵机(TIM1_CH1) */",
 "int    count;     /* count = 整数(0) */",
@@ -42,6 +42,7 @@ const EXPECTED = [
 "    count = 0;",
 "}",
 "",
+"/* 主循环：单片机会从头到尾一直执行这一段（不断重复） */",
 "void user_loop(void)",
 "{",
 "    if (Key_IsPressed(&key1)) {",
@@ -89,4 +90,41 @@ test("空主循环生成空 user_loop", () => {
   const p = Model.newProject("t");
   const code = Codegen.generate(p);
   assert.ok(code.includes("void user_loop(void)\n{\n}\n"));
+});
+
+test("红外 + OLED 生成代码（显示变量取对象名、跑马灯带参数）", () => {
+  const p = Model.newProject("红外演示");
+  const ir = Object.assign(Model.addObject(p, "ir", { pin: "PA2", active: "low" }), { id: "o1", name: "ir1" });
+  const oled = Object.assign(Model.addObject(p, "oled", {}), { id: "o2", name: "oled1" });
+  const cnt = Object.assign(Model.addObject(p, "int", { init: 0 }), { id: "o3", name: "count1" });
+  const showVar = Model.nodeAction(oled.id, "showvar");
+  showVar.varId = cnt.id;
+  p.loop.push(Model.nodeIf(Model.condState(ir.id, "detected"), [
+    Model.nodeAction(oled.id, "showyes"),
+    showVar
+  ], [
+    Model.nodeAction(oled.id, "showno"),
+    Model.nodeAction(oled.id, "marquee", 60)
+  ]));
+
+  const lines = Codegen.generate(p).split("\n");
+  const declOf = (key) => lines.find((l) => l.indexOf(key + ";") === 7);   // decl.padEnd(7) 后接名字
+  assert.equal(declOf("ir1"), "Ir".padEnd(7) + "ir1;".padEnd(11) + "/* ir1 = 红外(PA2, 低电平触发（检测到输出低）) */");
+  assert.equal(declOf("oled1"), "Oled".padEnd(7) + "oled1;".padEnd(11) + "/* oled1 = OLED(SSD1306 128x64, 软I2C PB8/PB9) */");
+
+  const code = lines.join("\n");
+  assert.ok(code.includes("Ir_Init(&ir1, GPIOA, GPIO_PIN_2, ACTIVE_LOW);"));
+  assert.ok(code.includes("Oled_Init(&oled1);"));
+  assert.ok(code.includes("if (Ir_IsTriggered(&ir1)) {"));
+  assert.ok(code.includes('Oled_ShowText(&oled1, "YES");'));
+  assert.ok(code.includes("Oled_ShowInt(&oled1, count1);"));
+  assert.ok(code.includes('Oled_ShowText(&oled1, "NO");'));
+  assert.ok(code.includes("Oled_Marquee(&oled1, 60);"));
+});
+
+test("显示变量积木未选对象时回退成 0（由 validate 拦截提示）", () => {
+  const p = Model.newProject("t");
+  const oled = Object.assign(Model.addObject(p, "oled", {}), { id: "o1", name: "oled1" });
+  p.loop.push(Model.nodeAction(oled.id, "showvar"));
+  assert.ok(Codegen.generate(p).includes("Oled_ShowInt(&oled1, 0);"));
 });

@@ -9,7 +9,8 @@ const Codegen = require("../web/js/codegen.js");
 const { copyTemplate, runBuild } = require("./lib/project-build.js");
 
 let failed = 0;
-for (const e of Examples.list()) {
+const all = Examples.list();
+for (const e of all) {
   const t0 = Date.now();
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "blockbuild-"));
   copyTemplate(tmp);
@@ -23,5 +24,5 @@ for (const e of Examples.list()) {
   }
   fs.rmSync(tmp, { recursive: true, force: true });
 }
-console.log(failed === 0 ? "\n3/3 通过" : `\n${failed} 个失败`);
+console.log(failed === 0 ? `\n${all.length}/${all.length} 通过` : `\n${failed} 个失败`);
 process.exit(failed === 0 ? 0 : 1);

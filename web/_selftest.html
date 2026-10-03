@@ -27,6 +27,7 @@
   </section>
   <section id="panel-canvas">
     <h2>主循环</h2>
+    <p id="loop-hint">单片机会从头到尾一直执行这一段代码（一直重复）</p>
     <div id="palette">
       <div class="pal-block pal-action" data-palette="action">动作</div>
       <div class="pal-block pal-delay"  data-palette="delay">延时</div>
@@ -282,7 +283,7 @@ window.addEventListener("DOMContentLoaded", function () {
       rec("edit-else-btn", !!document.querySelector("#loop-slot .if-else-head"));
 
       // 10) 示例菜单 / 导出 / 悬停联动
-      rec("menu-options", document.querySelectorAll("#example-select option").length === 4,
+      rec("menu-options", document.querySelectorAll("#example-select option").length === 5,
           "opts=" + document.querySelectorAll("#example-select option").length);
       var exSel = document.getElementById("example-select");
       exSel.value = "sweep";
@@ -328,6 +329,41 @@ window.addEventListener("DOMContentLoaded", function () {
           && document.getElementById("btn-download").disabled === false);
       document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
       rec("dialog-servo-delete", project.objects.length === beforeCnt, "objs=" + project.objects.length);
+
+      // 10.7) 红外 + OLED 对话框创建；OLED 固定占用 PB8/PB9 的冲突拦截
+      var beforeCnt2 = project.objects.length;
+      document.getElementById("btn-add-object").click();
+      var irBtn = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "红外传感器"; })[0];
+      irBtn.click();
+      document.getElementById("dlg-name").value = "ir9";
+      document.querySelector('#dlg-params select[data-param="pin"]').value = "PA2";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-ir-add", project.objects.length === beforeCnt2 + 1
+          && document.getElementById("code-view").textContent.indexOf("Ir_Init(&ir9") >= 0,
+          "objs=" + project.objects.length);
+      document.getElementById("btn-add-object").click();
+      var oledBtn = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "OLED屏"; })[0];
+      oledBtn.click();
+      document.getElementById("dlg-name").value = "oled9";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-oled-add", document.getElementById("code-view").textContent.indexOf("Oled_Init(&oled9") >= 0,
+          "objs=" + project.objects.length);
+      document.getElementById("btn-add-object").click();
+      var ledBtn2 = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "LED"; })[0];
+      ledBtn2.click();
+      document.getElementById("dlg-name").value = "led9";
+      document.querySelector('#dlg-params select[data-param="pin"]').value = "PB8";
+      document.getElementById("dlg-ok").click();
+      rec("oled-reserved-pin-conflict", !document.getElementById("error-banner").classList.contains("hidden")
+          && document.getElementById("error-banner").textContent.indexOf("PB8") >= 0,
+          "banner=" + document.getElementById("error-banner").textContent);
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
+      rec("dialog-ir-oled-cleanup", project.objects.length === beforeCnt2, "objs=" + project.objects.length);
     } catch (err) {
       out.push("SELFTEST FAIL exception :: " + (err && err.message));
     }

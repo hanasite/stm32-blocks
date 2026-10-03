@@ -99,3 +99,17 @@ test("删除对象后再新建不会产生 ID 冲突（回归：曾致 findObjec
   assert.equal(new Set(ids).size, ids.length, "ID 必须唯一");
   assert.equal(c.id, "o3");
 });
+
+test("删除整数对象会清理「显示变量」积木（varId 引用），且计数生效", () => {
+  const p = Model.newProject("t");
+  const oled = Model.addObject(p, "oled", {});
+  const cnt = Model.addObject(p, "int", { init: 0 });
+  const node = Model.nodeAction(oled.id, "showvar");
+  node.varId = cnt.id;
+  p.loop.push(node, Model.nodeDelay(10));
+  assert.equal(Model.countReferences(p, cnt.id), 1);
+  const removed = Model.deleteObject(p, cnt.id);
+  assert.equal(removed, 1);
+  assert.equal(p.loop.length, 1);
+  assert.equal(p.loop[0].kind, "delay");
+});

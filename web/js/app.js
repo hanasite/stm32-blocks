@@ -89,8 +89,11 @@
   function makePaletteNode(type, proj) {
     if (type === "delay") { return Model.nodeDelay(100); }
     if (type === "if") {
-      var keyObj = proj.objects.filter(function (o) { return o.type === "key"; })[0];
-      if (keyObj) { return Model.nodeIf(Model.condState(keyObj.id, "pressed"), [], []); }
+      var stObj = proj.objects.filter(function (o) { return Catalog.get(o.type).states.length > 0; })[0];
+      if (stObj) {
+        var sts = Catalog.get(stObj.type).states;
+        return Model.nodeIf(Model.condState(stObj.id, sts[0].id), [], []);
+      }
       var intObj = proj.objects.filter(function (o) { return o.type === "int"; })[0];
       if (intObj) { return Model.nodeIf(Model.condCompare(intObj.id, ">=", 1), [], []); }
       return null;   // 没有可用对象：不给放
@@ -263,8 +266,8 @@
             targetList.splice(index, 0, node);
           } else {
             toast(info.paletteType === "if"
-              ? "先在左边建一个「按键」或「整数」对象，再拖「如果」"
-              : "先在左边建一个 LED / 蜂鸣器 / 舵机 / 整数 对象，再拖「动作」");
+              ? "先在左边建一个「按键/红外」或「整数」对象，再拖「如果」"
+              : "先在左边建一个 LED / 蜂鸣器 / 舵机 / OLED / 整数 对象，再拖「动作」");
           }
         } else {
           var existing = Model.findNodeByUid(project, info.uid);

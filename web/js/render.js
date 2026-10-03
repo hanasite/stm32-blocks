@@ -70,7 +70,16 @@
   }
 
   function conditionObjects(project) {
-    return project.objects.filter(function (o) { return o.type === "key" || o.type === "int"; });
+    return project.objects.filter(function (o) {
+      return o.type === "key" || o.type === "ir" || o.type === "int";
+    });
+  }
+
+  function defaultCondFor(obj) {
+    var states = Catalog.get(obj.type).states;
+    return states.length > 0
+      ? Model.condState(obj.id, states[0].id)
+      : Model.condCompare(obj.id, ">=", 1);
   }
 
   function delayBlock(node, opts) {
@@ -120,22 +129,41 @@
       var self = this;
       var a = Catalog.get(obj.type).actions.filter(function (x) { return x.id === self.value; })[0];
       node.action = a.id;
-      if (a.param) { node.value = a.defaultParam; } else { delete node.value; }
+      if (a.param && a.paramType !== "intref") { node.value = a.defaultParam; } else { delete node.value; }
+      if (a.paramType !== "intref") { delete node.varId; }
       (opts.rerender || noop)();
     };
     root.appendChild(actSel);
 
     if (act.param) {
-      var num = el("input");
-      num.type = "number";
-      if (act.min !== undefined) { num.min = act.min; }
-      if (act.max !== undefined) { num.max = act.max; }
-      num.value = node.value !== undefined ? node.value : act.defaultParam;
-      num.oninput = function () {
-        node.value = Number(this.value === "" ? 0 : this.value);
-        (opts.quick || opts.rerender || noop)();
-      };
-      root.appendChild(num);
+      if (act.paramType === "intref") {
+        var ints = project.objects.filter(function (o) { return o.type === "int"; });
+        if (ints.length === 0) {
+          var hint = el("span", null, "（先在左边建一个整数对象）");
+          hint.style.fontSize = "12px";
+          root.appendChild(hint);
+          delete node.varId;
+        } else {
+          if (!ints.some(function (o) { return o.id === node.varId; })) { node.varId = ints[0].id; }
+          var varSel = selectOf(ints.map(function (o) { return { v: o.id, label: o.name }; }), node.varId);
+          varSel.onchange = function () {
+            node.varId = this.value;
+            (opts.quick || opts.rerender || noop)();
+          };
+          root.appendChild(varSel);
+        }
+      } else {
+        var num = el("input");
+        num.type = "number";
+        if (act.min !== undefined) { num.min = act.min; }
+        if (act.max !== undefined) { num.max = act.max; }
+        num.value = node.value !== undefined ? node.value : act.defaultParam;
+        num.oninput = function () {
+          node.value = Number(this.value === "" ? 0 : this.value);
+          (opts.quick || opts.rerender || noop)();
+        };
+        root.appendChild(num);
+      }
     }
     return root;
   }
@@ -145,25 +173,27 @@
     var objs = conditionObjects(project);
     if (!objs.some(function (o) { return o.id === node.cond.objectId; })) {
       var first = objs[0];
-      if (!first) { wrap.textContent = "（先在左边建按键或整数对象）"; return wrap; }
-      node.cond = first.type === "key"
-        ? Model.condState(first.id, "pressed")
-        : Model.condCompare(first.id, ">=", 1);
+      if (!first) { wrap.textContent = "（先在左边建按键/红外/整数对象）"; return wrap; }
+      node.cond = defaultCondFor(first);
     }
     var cond = node.cond;
     var objSel = selectOf(objs.map(function (o) { return { v: o.id, label: o.name }; }), cond.objectId);
     objSel.onchange = function () {
       var o = Model.findObject(project, this.value);
-      node.cond = o.type === "key"
-        ? Model.condState(o.id, "pressed")
-        : Model.condCompare(o.id, ">=", 1);
+      node.cond = defaultCondFor(o);
       (opts.rerender || noop)();
     };
     wrap.appendChild(objSel);
 
     var obj = Model.findObject(project, cond.objectId);
-    if (obj.type === "key") {
-      var stateSel = selectOf([{ v: "pressed", label: "被按下" }, { v: "released", label: "被松开" }], cond.state);
+    var states = Catalog.get(obj.type).states;
+    if (states.length > 0) {
+      /* 状态失效自愈（比如导入的工程里状态和类型对不上） */
+      if (!states.some(function (s) { return s.id === cond.state; })) {
+        node.cond = Model.condState(obj.id, states[0].id);
+        cond = node.cond;
+      }
+      var stateSel = selectOf(states.map(function (s) { return { v: s.id, label: s.label }; }), cond.state);
       stateSel.onchange = function () {
         node.cond = Model.condState(obj.id, this.value);
         (opts.quick || opts.rerender || noop)();

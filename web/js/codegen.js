@@ -28,12 +28,12 @@
       return { tim: ch ? ch.tim : obj.params.channel, chCode: ch ? ch.chCode : "" };
     }
     var map = {};
-    if (obj.type === "key" || obj.type === "led" || obj.type === "buzzer") {
+    if (obj.type === "key" || obj.type === "led" || obj.type === "buzzer" || obj.type === "ir") {
       map.port = Catalog.gpioPortOf(obj.params.pin);
       map.pin = Catalog.gpioPinMacroOf(obj.params.pin);
     }
     if (obj.type === "key") { map.pull = paramOption(obj, "pull"); }
-    if (obj.type === "led" || obj.type === "buzzer") { map.active = paramOption(obj, "active"); }
+    if (obj.type === "led" || obj.type === "buzzer" || obj.type === "ir") { map.active = paramOption(obj, "active"); }
     if (obj.type === "int") { map.init = String(obj.params.init); }
     return map;
   }
@@ -41,9 +41,9 @@
   function commentText(obj) {
     var map = { n: obj.name };
     if (obj.type === "servo") { map.channel = obj.params.channel; }
-    if (obj.type === "key" || obj.type === "led" || obj.type === "buzzer") { map.pin = obj.params.pin; }
+    if (obj.type === "key" || obj.type === "led" || obj.type === "buzzer" || obj.type === "ir") { map.pin = obj.params.pin; }
     if (obj.type === "key") { map.pullLabel = paramLabel(obj, "pull"); }
-    if (obj.type === "led" || obj.type === "buzzer") { map.activeLabel = paramLabel(obj, "active"); }
+    if (obj.type === "led" || obj.type === "buzzer" || obj.type === "ir") { map.activeLabel = paramLabel(obj, "active"); }
     if (obj.type === "int") { map.init = String(obj.params.init); }
     return obj.name + " = " + fill(Catalog.get(obj.type).comment, map);
   }
@@ -69,7 +69,14 @@
         obj = Model.findObject(project, node.objectId);
         var act = Catalog.get(obj.type).actions.filter(function (a) { return a.id === node.action; })[0];
         var map = { n: obj.name };
-        if (act.param) { map[act.param] = node.value !== undefined ? node.value : act.defaultParam; }
+        if (act.param) {
+          if (act.paramType === "intref") {
+            var varObj = node.varId ? Model.findObject(project, node.varId) : null;
+            map[act.param] = varObj ? varObj.name : "0";   /* 缺变量时给 0，validate 会拦截 */
+          } else {
+            map[act.param] = node.value !== undefined ? node.value : act.defaultParam;
+          }
+        }
         out.push(pad + fill(act.code, map));
       } else if (node.kind === "if") {
         out.push(pad + "if (" + emitCondition(node.cond, project) + ") {");
@@ -105,6 +112,7 @@
     });
     out.push("}");
     out.push("");
+    out.push("/* 主循环：单片机会从头到尾一直执行这一段（不断重复） */");
     out.push("void user_loop(void)");
     out.push("{");
     emitNodes(project.loop, 1, project, out, trace);

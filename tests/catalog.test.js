@@ -40,3 +40,20 @@ test("每种类型都有 declare/initCode/comment，动作带中文标签", () =
   assert.ok(Catalog.get("servo").actions.some((a) => a.id === "write" && a.param === "angle"));
   assert.ok(Catalog.get("key").states.some((s) => s.id === "pressed"));
 });
+
+test("红外与 OLED：引脚映射、动作定义与接线提示", () => {
+  assert.equal(Catalog.pinOfObject({ type: "ir", params: { pin: "PA2" } }), "PA2");
+  assert.deepEqual(Catalog.pinsOfObject({ type: "oled", params: {} }), ["PB8", "PB9"]);
+  assert.deepEqual(Catalog.pinsOfObject({ type: "servo", params: { channel: "TIM3_CH4" } }), ["PB1"]);
+  assert.deepEqual(Catalog.pinsOfObject({ type: "int", params: {} }), []);
+  assert.ok(Catalog.get("ir").states.some((s) => s.id === "detected"));
+  assert.equal(Catalog.get("oled").actions.length, 6);
+  const sv = Catalog.get("oled").actions.find((a) => a.id === "showvar");
+  assert.equal(sv.paramType, "intref");
+  const mq = Catalog.get("oled").actions.find((a) => a.id === "marquee");
+  assert.equal(mq.min, 0);
+  assert.equal(mq.max, 100);
+  // 按键/LED 的电平选项带接线提示（另一端接什么）
+  assert.ok(Catalog.get("key").params.find((p) => p.key === "pull").options[0].label.includes("接 GND"));
+  assert.ok(Catalog.get("led").params.find((p) => p.key === "active").options[1].label.includes("接 3V3"));
+});

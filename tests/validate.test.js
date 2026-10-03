@@ -39,3 +39,34 @@ test("名字非法与重名报错", () => {
   assert.ok(codes.includes("BAD_NAME"));
   assert.ok(codes.includes("DUP_NAME"));
 });
+
+test("OLED 固定占用 PB8/PB9：与 PB8 上的 LED 冲突", () => {
+  const p = Model.newProject("t");
+  Model.addObject(p, "oled", {});
+  Model.addObject(p, "led", { pin: "PB8", active: "high" });
+  const e = Validate.check(p).errors;
+  assert.equal(e.length, 1);
+  assert.equal(e[0].code, "PIN_CONFLICT");
+  assert.ok(e[0].message.includes("PB8"));
+  assert.ok(e[0].message.includes("OLED 固定占用"));
+});
+
+test("红外与普通 GPIO 同引脚同样冲突", () => {
+  const p = Model.newProject("t");
+  Model.addObject(p, "ir", { pin: "PA2", active: "low" });
+  Model.addObject(p, "led", { pin: "PA2", active: "high" });
+  const e = Validate.check(p).errors;
+  assert.equal(e.length, 1);
+  assert.equal(e[0].code, "PIN_CONFLICT");
+});
+
+test("「显示变量」积木未选整数对象报错，选中后通过", () => {
+  const p = Model.newProject("t");
+  const oled = Model.addObject(p, "oled", {});
+  p.loop.push(Model.nodeAction(oled.id, "showvar"));
+  const codes = Validate.check(p).errors.map((x) => x.code);
+  assert.ok(codes.includes("MISSING_VAR"));
+  const cnt = Model.addObject(p, "int", { init: 0 });
+  p.loop[0].varId = cnt.id;
+  assert.deepEqual(Validate.check(p).errors, []);
+});

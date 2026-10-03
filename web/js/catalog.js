@@ -37,7 +37,8 @@
       params: [
         { key: "pin", label: "引脚", type: "pin", options: PIN_OPTIONS },
         { key: "pull", label: "电阻", type: "select", options: [
-            { v: "up", label: "上拉", code: "PULL_UP" }, { v: "down", label: "下拉", code: "PULL_DOWN" }] }
+            { v: "up", label: "上拉，另一端接 GND", code: "PULL_UP" },
+            { v: "down", label: "下拉，另一端接 3V3", code: "PULL_DOWN" }] }
       ],
       states: [
         { id: "pressed", label: "被按下", code: "Key_IsPressed(&{n})" },
@@ -47,12 +48,29 @@
       initCode: "Key_Init(&{n}, {port}, {pin}, {pull})",
       comment: "按键({pin}, {pullLabel})"
     },
+    ir: {
+      label: "红外传感器", declare: "Ir",
+      params: [
+        { key: "pin", label: "引脚", type: "pin", options: PIN_OPTIONS },
+        { key: "active", label: "触发逻辑", type: "select", options: [
+            { v: "low", label: "低电平触发（检测到输出低）", code: "ACTIVE_LOW" },
+            { v: "high", label: "高电平触发（检测到输出高）", code: "ACTIVE_HIGH" }] }
+      ],
+      states: [
+        { id: "detected", label: "检测到", code: "Ir_IsTriggered(&{n})" },
+        { id: "idle", label: "未检测到", code: "Ir_IsIdle(&{n})" }
+      ],
+      actions: [],
+      initCode: "Ir_Init(&{n}, {port}, {pin}, {active})",
+      comment: "红外({pin}, {activeLabel})"
+    },
     led: {
       label: "LED", declare: "Led",
       params: [
         { key: "pin", label: "引脚", type: "pin", options: PIN_OPTIONS },
         { key: "active", label: "亮度逻辑", type: "select", options: [
-            { v: "high", label: "高电平亮", code: "ACTIVE_HIGH" }, { v: "low", label: "低电平亮", code: "ACTIVE_LOW" }] }
+            { v: "high", label: "高电平亮，另一端接 GND", code: "ACTIVE_HIGH" },
+            { v: "low", label: "低电平亮，另一端接 3V3", code: "ACTIVE_LOW" }] }
       ],
       states: [],
       actions: [
@@ -88,6 +106,23 @@
                   code: "Servo_Write(&{n}, {angle});" }],
       initCode: "Servo_Init(&{n}, {tim}, {chCode})",
       comment: "舵机({channel})"
+    },
+    oled: {
+      label: "OLED屏", declare: "Oled",
+      params: [],
+      states: [],
+      actions: [
+        { id: "showyes", label: "显示 YES", code: "Oled_ShowText(&{n}, \"YES\");" },
+        { id: "showno", label: "显示 NO", code: "Oled_ShowText(&{n}, \"NO\");" },
+        { id: "showlow", label: "显示 LOW", code: "Oled_ShowText(&{n}, \"LOW\");" },
+        { id: "showhigh", label: "显示 HIGH", code: "Oled_ShowText(&{n}, \"HIGH\");" },
+        { id: "showvar", label: "显示变量", param: "var", paramType: "intref",
+          code: "Oled_ShowInt(&{n}, {var});" },
+        { id: "marquee", label: "跑马灯", param: "progress", paramLabel: "进度", paramType: "number",
+          defaultParam: 0, min: 0, max: 100, code: "Oled_Marquee(&{n}, {progress});" }
+      ],
+      initCode: "Oled_Init(&{n})",
+      comment: "OLED(SSD1306 128x64, 软I2C PB8/PB9)"
     },
     int: {
       label: "整数", declare: "int",
@@ -132,15 +167,25 @@
       }
       return null;
     }
-    if (obj.type === "key" || obj.type === "led" || obj.type === "buzzer") { return obj.params.pin; }
+    if (obj.type === "key" || obj.type === "led" || obj.type === "buzzer" || obj.type === "ir") {
+      return obj.params.pin;
+    }
     return null;
+  }
+
+  /* 该对象占用的全部引脚（OLED 软 I2C 固定占 PB8/PB9，视为两个） */
+  function pinsOfObject(obj) {
+    if (obj.type === "oled") { return ["PB8", "PB9"]; }
+    var p = pinOfObject(obj);
+    return p ? [p] : [];
   }
 
   return {
     GPIO_PINS: GPIO_PINS, SERVO_CHANNELS: SERVO_CHANNELS,
-    TYPES: ["key", "led", "buzzer", "servo", "int"],
+    TYPES: ["key", "ir", "led", "buzzer", "servo", "oled", "int"],
     get: get, labelOf: labelOf, codeOf: codeOf,
     pinLabel: pinLabel, channelLabel: channelLabel,
-    gpioPortOf: gpioPortOf, gpioPinMacroOf: gpioPinMacroOf, pinOfObject: pinOfObject
+    gpioPortOf: gpioPortOf, gpioPinMacroOf: gpioPinMacroOf,
+    pinOfObject: pinOfObject, pinsOfObject: pinsOfObject
   };
 });

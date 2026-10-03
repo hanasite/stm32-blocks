@@ -145,7 +145,7 @@ test("序列化往返", () => {
 });
 ```
 
-- [ ] **Step 3: 跑测试看失败**
+- [x] **Step 3: 跑测试看失败**（注意：Node 24 下用 `node --test` 不带路径自动发现测试文件；`node --test tests/` 会被当成模块报错）
 
 Run: `node --test tests/`
 Expected: FAIL（`Cannot find module '../web/js/model.js'`）
@@ -290,7 +290,7 @@ Expected: FAIL（`Cannot find module '../web/js/model.js'`）
 });
 ```
 
-- [ ] **Step 5: 跑测试到全绿**
+- [x] **Step 5: 跑测试到全绿**（2026-10-03：`node --test` PASS ×6）
 
 Run: `node --test tests/`
 Expected: PASS ×6
@@ -341,7 +341,7 @@ Catalog.gpioPinMacroOf(pin)  // "PA1" -> "GPIO_PIN_1"
 Catalog.pinOfObject(obj)     // 对象（key/led/buzzer 用 params.pin；servo 用通道映射）-> 引脚字符串 | null
 ```
 
-- [ ] **Step 1: 写失败测试 `tests/catalog.test.js`（全文）**
+- [x] **Step 1: 写失败测试 `tests/catalog.test.js`（全文）**
 
 ```js
 const test = require("node:test");
@@ -388,9 +388,9 @@ test("每种类型都有 declare/initCode/comment，动作带中文标签", () =
 });
 ```
 
-- [ ] **Step 2: 跑测试看失败** → Run: `node --test tests/catalog.test.js`，Expected: FAIL（模块不存在）
+- [x] **Step 2: 跑测试看失败**（与实现同批写入后一次跑绿，未单独红跑，记录备案）
 
-- [ ] **Step 3: 实现 `web/js/catalog.js`（全文）**
+- [x] **Step 3: 实现 `web/js/catalog.js`（全文）**
 
 ```js
 (function (root, factory) {
@@ -541,9 +541,9 @@ test("每种类型都有 declare/initCode/comment，动作带中文标签", () =
 });
 ```
 
-- [ ] **Step 4: 跑测试到全绿** → `node --test tests/catalog.test.js`，Expected: PASS ×4
+- [x] **Step 4: 跑测试到全绿**（2026-10-03：全量 `node --test` PASS ×10）
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web/js/catalog.js tests/catalog.test.js && git commit -m "feat: 积木目录 catalog.js（引脚表/舵机通道表/五种对象定义）

@@ -115,7 +115,16 @@
       navigator.clipboard.writeText(Codegen.generate(project));
     };
     document.getElementById("btn-download").onclick = function () {
-      alert("打包功能开发中（Task 10/11）");
+      if (!window.TEMPLATE_ZIP) { alert("模板未内嵌：先运行 node tools/embed-template.js"); return; }
+      Packer.buildProjectZip(project, window.TEMPLATE_ZIP, project.projectName || "我的工程")
+        .then(function (data) {
+          var blob = new Blob([data], { type: "application/zip" });
+          var a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = (project.projectName || "我的工程") + ".zip";
+          a.click();
+        })
+        .catch(function (err) { alert("打包失败：" + err.message); });
     };
 
     Examples.list().forEach(function (e) {

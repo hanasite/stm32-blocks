@@ -1884,7 +1884,7 @@ Packer.buildProjectZip(project, templateBase64, projectName)
   // -> Promise<Uint8Array>；根目录改名 projectName；Core/Src/user_code.c 换成生成代码
 ```
 
-- [ ] **Step 1: vendor JSZip**
+- [x] **Step 1: vendor JSZip**
 
 ```bash
 cd "F:/kakuns开源项目/stm32-blocks"
@@ -1895,7 +1895,7 @@ curl -L -o web/vendor/jszip.min.js https://cdn.jsdelivr.net/npm/jszip@3.10.1/dis
 head -c 200 web/vendor/jszip.min.js   # 期望看到 /*! JSZip v3.10.1 之类字样，不是 HTML 错误页
 ```
 
-- [ ] **Step 2: 写失败测试 `tests/packer.test.js`（全文）**
+- [x] **Step 2: 写失败测试 `tests/packer.test.js`（全文）**
 
 ```js
 const test = require("node:test");
@@ -1930,9 +1930,9 @@ test("打包：根目录改名 + user_code.c 替换为生成代码，其余文�
 });
 ```
 
-- [ ] **Step 3: 跑测试看失败** → `node --test tests/packer.test.js`，Expected: FAIL
+- [x] **Step 3: 跑测试看失败** → `node --test tests/packer.test.js`，Expected: FAIL
 
-- [ ] **Step 4: 实现 `web/js/packer.js`（全文）**
+- [x] **Step 4: 实现 `web/js/packer.js`（全文）**
 
 ```js
 (function (root, factory) {
@@ -1979,8 +1979,8 @@ test("打包：根目录改名 + user_code.c 替换为生成代码，其余文�
 });
 ```
 
-- [ ] **Step 5: 跑测试到全绿** → `node --test tests/packer.test.js`，Expected: PASS
-- [ ] **Step 6: app.js 下载按钮接真逻辑**（TEMPLATE_ZIP 还没内嵌时按钮临时 alert "模板未内嵌，先跑 tools/embed-template.js"）：
+- [x] **Step 5: 跑测试到全绿** → `node --test tests/packer.test.js`，Expected: PASS
+- [x] **Step 6: app.js 下载按钮接真逻辑**（TEMPLATE_ZIP 还没内嵌时按钮临时 alert "模板未内嵌，先跑 tools/embed-template.js"）：
 
 ```js
 document.getElementById("btn-download").onclick = function () {
@@ -1996,13 +1996,15 @@ document.getElementById("btn-download").onclick = function () {
 };
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add web/js/packer.js web/vendor tests/packer.test.js web/js/app.js web/index.html && git commit -m "feat: 打包器 packer.js（内嵌模板 → 替换生成代码 → 下载 zip）
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
+
+**执行记录（2026-10-03 深夜续）**：JSZip 3.10.1 从 jsdelivr 一次下载成功（97,630 字节，文件头为 `/*! JSZip v3.10.1`）；`packer.js` 与测试均按计划原文落地，首次运行 25/25 全绿。执行中的两处小偏差：① 下载按钮 `.then` 后补了 `.catch(alert("打包失败："+err.message))`——避免打包异常在招新现场静默无反馈；② `_selftest.html` 也加了 `packer.js` 的 script 标签（与 index.html 保持一致，后续无头端到端要用）。
 
 ---
 

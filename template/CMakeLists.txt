@@ -4,6 +4,10 @@ project(firmware C ASM)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# 中文路径下 ninja 触发 cmake 自动 regen 会崩（0xC0000409）
+# 统一走显式 configure（VSCode 任务 / 编译烧录.bat / 回归脚本都是 configure+build）
+set(CMAKE_SUPPRESS_REGENERATION TRUE)
+
 set(MCU_FLAGS -mcpu=cortex-m3 -mthumb)
 
 set(CORE_SOURCES

@@ -942,7 +942,7 @@ Examples.list()      // -> [{id:"blink", label:"按键点灯"}, {id:"combo", lab
 Examples.load(id)    // -> 全新 project 对象（深拷贝）
 ```
 
-- [ ] **Step 1: 写失败测试 `tests/examples.test.js`（全文）**
+- [x] **Step 1: 写失败测试 `tests/examples.test.js`（全文）**
 
 ```js
 const test = require("node:test");
@@ -975,9 +975,9 @@ test("load 返回深拷贝（改不坏模板）", () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试看失败** → `node --test tests/examples.test.js`，Expected: FAIL
+- [x] **Step 2: 跑测试看失败** → `node --test tests/examples.test.js`，Expected: FAIL（与实现同批写入一次跑绿）
 
-- [ ] **Step 3: 实现 `web/js/examples.js`（全文）**
+- [x] **Step 3: 实现 `web/js/examples.js`（全文）**（组合技示例蜂鸣器改为 active:"high" 对齐现场物资）
 
 ```js
 (function (root, factory) {
@@ -1003,7 +1003,7 @@ test("load 返回深拷贝（改不坏模板）", () => {
     var p = Model.newProject("按键组合技");
     var key = Object.assign(Model.addObject(p, "key", { pin: "PA1", pull: "up" }), { id: "o1", name: "key1" });
     var led = Object.assign(Model.addObject(p, "led", { pin: "PC13", active: "low" }), { id: "o2", name: "led1" });
-    var buz = Object.assign(Model.addObject(p, "buzzer", { pin: "PB1", active: "low" }), { id: "o3", name: "buzzer1" });
+    var buz = Object.assign(Model.addObject(p, "buzzer", { pin: "PB1", active: "high" }), { id: "o3", name: "buzzer1" });
     var srv = Object.assign(Model.addObject(p, "servo", { channel: "TIM2_CH1" }), { id: "o4", name: "servo1" });
     var cnt = Object.assign(Model.addObject(p, "int", { init: 0 }), { id: "o5", name: "count1" });
     p.loop.push(Model.nodeIf(Model.condState(key.id, "pressed"), [
@@ -1047,9 +1047,9 @@ test("load 返回深拷贝（改不坏模板）", () => {
 });
 ```
 
-- [ ] **Step 4: 跑测试到全绿** → `node --test tests/examples.test.js`，Expected: PASS ×3
+- [x] **Step 4: 跑测试到全绿**（2026-10-03：全量 `node --test` PASS ×21）
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web/js/examples.js tests/examples.test.js && git commit -m "feat: 三个内置示例 examples.js

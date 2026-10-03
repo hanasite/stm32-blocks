@@ -36,7 +36,7 @@
 - Consumes: 无
 - Produces: 后续任务构建所需的全部 HAL/CMSIS 源码；`FLASH_LATENCY_2` 等宏（经 `stm32f1xx_hal_flash.h`）；链接脚本 `STM32F103C8Tx_FLASH.ld`。
 
-- [ ] **Step 1: 下载 STM32CubeF1 源码（只取 Drivers）**
+- [x] **Step 1: 下载 STM32CubeF1 源码（只取 Drivers）**
 
 ```bash
 mkdir -p /tmp/cubef1 && cd /tmp/cubef1
@@ -46,7 +46,16 @@ cd STM32CubeF1 && git sparse-checkout set Drivers
 
 （若 gh-proxy 的 clone 失败，回退：`git clone --depth 1 --filter=blob:none --sparse https://gitee.com/mirrors/STM32CubeF1.git`，一样 `sparse-checkout set Drivers`。）
 
-- [ ] **Step 2: 复制文件进 template/**
+**执行记录（2026-10-03）**：gh-proxy 被限流（429）、Gitee 无此镜像，最终**直连 GitHub 克隆成功**。注意 CubeF1 主仓库里 `Drivers/STM32F1xx_HAL_Driver` 和 `Drivers/CMSIS/Device/ST/STM32F1xx` 是 **git 子模块**（sparse-checkout 后是空目录），需另克隆两个独立仓库再复制：
+
+```bash
+git clone --depth 1 https://github.com/STMicroelectronics/cmsis_device_f1 /tmp/cubef1/cmsis_device_f1
+git clone --depth 1 https://github.com/STMicroelectronics/stm32f1xx_hal_driver /tmp/cubef1/stm32f1xx_hal_driver
+```
+
+设备文件在 `cmsis_device_f1/{Include, Source/Templates}`；HAL 在 `stm32f1xx_hal_driver/{Inc, Src}`。
+
+- [x] **Step 2: 复制文件进 template/**
 
 在仓库根执行（`$SRC=/tmp/cubef1/STM32CubeF1/Drivers`）：
 
@@ -72,7 +81,7 @@ cp $SRC/STM32F1xx_HAL_Driver/Inc/{stm32f1xx_hal.h,stm32f1xx_hal_def.h,stm32f1xx_
 cp $SRC/STM32F1xx_HAL_Driver/Src/{stm32f1xx_hal.c,stm32f1xx_hal_cortex.c,stm32f1xx_hal_dma.c,stm32f1xx_hal_flash.c,stm32f1xx_hal_flash_ex.c,stm32f1xx_hal_gpio.c,stm32f1xx_hal_rcc.c,stm32f1xx_hal_rcc_ex.c,stm32f1xx_hal_tim.c,stm32f1xx_hal_tim_ex.c} $HALS/
 ```
 
-- [ ] **Step 3: 写链接脚本 `template/STM32F103C8Tx_FLASH.ld`（全文）**
+- [x] **Step 3: 写链接脚本 `template/STM32F103C8Tx_FLASH.ld`（全文）**
 
 ```ld
 ENTRY(Reset_Handler)
@@ -174,7 +183,7 @@ SECTIONS
 }
 ```
 
-- [ ] **Step 4: 验证文件齐全**
+- [x] **Step 4: 验证文件齐全**
 
 ```bash
 cd "F:/kakuns开源项目/stm32-blocks"
@@ -186,7 +195,7 @@ test -f template/Core/Src/system_stm32f1xx.c && echo system-ok
 test -f template/STM32F103C8Tx_FLASH.ld && echo ld-ok
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add template && git commit -m "feat: vendor 裁剪版 STM32CubeF1 HAL、CMSIS 与启动文件

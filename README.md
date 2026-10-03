@@ -33,7 +33,7 @@
 ## 开发
 
 - 单元测试：`node --test`（42 项，含 golden 测试逐字符锁定生成代码格式）
-- UI 无头自检：Edge 无头打开 `web/_selftest.html`（离线 54 项全绿；本地服务在线时 56 项，含真实"点击编译"端到端）
+- UI 无头自检：Edge 无头打开 `web/_selftest.html`（离线 55 项全绿；本地服务在线时 57 项，含真实"点击编译"端到端）
 - 示例编译回归：`node tools/run-example-builds.js`（6/6 通过）
 - **模板（`template/`）任何改动后必须重跑 `node tools/embed-template.js`**，否则网页里内嵌的还是旧模板
 

@@ -162,10 +162,11 @@
     root.appendChild(actSel);
 
     if (act.params) {
-      /* 多参数动作（objref 绑定）：每个参数一个对象下拉，缺对象给提示 */
+      /* 多参数动作（组件类，如小恐龙）：参数分行、缩进排列，块更高不挤在一行 */
       node.refs = node.refs || {};
       act.params.forEach(function (pd) {
-        root.appendChild(el("span", null, " " + pd.label + " "));
+        var line = el("div", "act-param-line");
+        line.appendChild(el("span", null, pd.label + " "));
         var pool = project.objects.filter(function (o) {
           if (pd.refType === "oled") { return o.type === "oled"; }
           return o.type === "key" || o.type === "ir";
@@ -173,12 +174,14 @@
         if (pool.length === 0 && !pd.allowNone) {
           var hint2 = el("span", null, pd.refType === "oled" ? "（先建一个 OLED 屏对象）" : "（先建一个按键/红外对象）");
           hint2.style.fontSize = "12px";
-          root.appendChild(hint2);
+          line.appendChild(hint2);
           delete node.refs[pd.key];
+          root.appendChild(line);
           return;
         }
         if (node.refs[pd.key] === undefined
-            || (node.refs[pd.key] !== "" && !pool.some(function (o) { return o.id === node.refs[pd.key]; }))) {
+            || (node.refs[pd.key] !== "" && node.refs[pd.key] !== "__hook__"
+                && !pool.some(function (o) { return o.id === node.refs[pd.key]; }))) {
           node.refs[pd.key] = pool.length > 0 ? pool[0].id : "";
         }
         var opts2 = [];
@@ -190,7 +193,7 @@
           node.refs[pd.key] = this.value;
           (opts.rerender || noop)();   /* 换对象要重渲染：条件下拉要跟着出现/消失 */
         };
-        root.appendChild(refSel);
+        line.appendChild(refSel);
 
         /* 输入类绑定：后面再跟该对象的条件下拉（ir：检测到/未检测到；key：被按下/被松开） */
         var boundObj = node.refs[pd.key] ? Model.findObject(project, node.refs[pd.key]) : null;
@@ -204,8 +207,9 @@
             node.refState[pd.key] = this.value;
             (opts.quick || opts.rerender || noop)();
           };
-          root.appendChild(stSel);
+          line.appendChild(stSel);
         }
+        root.appendChild(line);
       });
       return root;
     }

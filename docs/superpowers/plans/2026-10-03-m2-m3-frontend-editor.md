@@ -1661,7 +1661,7 @@ DragDrop.init({
 - App 侧 `dropIndexAt(info, list)`：遍历 list 中各块 DOM（`[data-node-id="<uid>"]`）的 `getBoundingClientRect().top + height/2` 与 `info.y` 比较，得出插入位
 - App 侧 `makePaletteNode(type, project)`：`"action"` → 第一个"有动作对象"的第一个动作；`"delay"` → `Model.nodeDelay(100)`；`"if"` → 首个按键对象的 `condState(pressed)`（没有按键则首个整数对象的 `condCompare(>=, 1)`）
 
-- [ ] **Step 4: 浏览器手动验证 checklist**
+- [x] **Step 4: 浏览器手动验证 checklist**（2026-10-03 升级为自动化：`_selftest.html` 扩展 6 项**合成指针事件拖拽仿真**——palette 拖出/追加、正向嵌套、自嵌套拒绝、垃圾桶整体删除——连同原有 15 项共 **21/21 PASS**；命令加 `--window-size=1600,900`（默认窗口太小会把中栏挤没））
 
 - [ ] 从积木盒拖「延时」到主循环 → 松手出现"延时 100 毫秒"块（默认 100，可后续改）
 - [ ] 拖「如果」到主循环 → 出现 C 形块，条件下拉可选中 key1 被按下

@@ -1,0 +1,51 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Microsoft YaHei", "PingFang SC", sans-serif; background: #f4f6fa; }
+header { display: flex; align-items: center; gap: 16px; padding: 10px 18px; background: #fff; border-bottom: 2px solid #e3e8f0; }
+header h1 { font-size: 20px; margin: 0; color: #2b3a55; }
+#project-name { font-size: 14px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; }
+#error-banner { flex: 1; color: #b42318; background: #fef3f2; border: 1px solid #fda29b; border-radius: 6px; padding: 6px 10px; font-size: 13px; }
+.hidden { display: none !important; }
+#btn-download { margin-left: auto; background: #2563eb; color: #fff; border: 0; border-radius: 8px; padding: 10px 16px; font-size: 15px; cursor: pointer; }
+#btn-download:disabled { background: #9db4d8; cursor: not-allowed; }
+
+main { display: grid; grid-template-columns: 240px 1fr 380px; gap: 12px; padding: 12px; height: calc(100vh - 64px); }
+section { background: #fff; border-radius: 10px; padding: 12px; overflow: auto; }
+section h2 { font-size: 14px; color: #64748b; margin: 0 0 10px; }
+
+#object-list .obj-card { border: 1px solid #dbe3ef; border-left: 4px solid #2563eb; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; cursor: pointer; }
+#object-list .obj-card code { color: #0f172a; font-size: 13px; }
+#object-list .obj-card .obj-del { float: right; color: #b42318; cursor: pointer; border: 0; background: none; }
+#btn-add-object { width: 100%; padding: 8px; border: 1px dashed #94a3b8; border-radius: 8px; background: #f8fafc; cursor: pointer; }
+
+#palette { display: flex; gap: 8px; margin-bottom: 12px; }
+.pal-block { padding: 8px 14px; border-radius: 8px; color: #fff; cursor: grab; user-select: none; font-size: 14px; }
+.pal-action { background: #2563eb; } .pal-delay { background: #ea7a1a; } .pal-if { background: #7c3aed; }
+
+#canvas { position: relative; min-height: 320px; border: 2px dashed #d3dbe8; border-radius: 10px; padding: 12px; }
+#trash { position: fixed; right: 420px; bottom: 30px; font-size: 34px; background: #fee4e2; border: 2px dashed #f97066; border-radius: 12px; padding: 10px 16px; }
+
+#panel-code pre { margin: 0 0 10px; font-size: 12.5px; line-height: 1.5; overflow: auto; }
+.tok-kw { color: #7c3aed; } .tok-comment { color: #6b7280; } .tok-num { color: #b45309; } .tok-str { color: #15803d; }
+
+dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
+#dlg-types { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0; }
+#dlg-types button { padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; cursor: pointer; }
+#dlg-types button.sel { background: #2563eb; color: #fff; border-color: #2563eb; }
+#dlg-params label { display: block; margin: 8px 0; }
+#dlg-params select, #dlg-params input { width: 100%; padding: 5px; }
+#dlg-hint { color: #b42318; }
+
+/* T7 拖拽 */
+.blk { border-radius: 8px; padding: 8px 12px; margin: 6px 0; color: #fff; font-size: 14px; }
+.blk-action { background: #2563eb; }
+.blk-delay { background: #ea7a1a; }
+.blk-if { background: #7c3aed; }
+.blk select, .blk input { margin: 0 4px; color: #111; border-radius: 4px; border: 0; padding: 3px 6px; }
+.if-head, .if-else-head { font-weight: bold; }
+.if-body { background: rgba(255,255,255,0.18); border-radius: 6px; min-height: 30px; padding: 6px; margin: 6px 0; }
+.drag-ghost { border-radius: 8px; padding: 8px 12px; color: #fff; background: #2563eb; box-shadow: 0 6px 16px rgba(0,0,0,.25); }
+.drag-ghost.pal-delay { background: #ea7a1a; }
+.drag-ghost.pal-if { background: #7c3aed; }
+.drop-hint { outline: 3px solid #22c55e; outline-offset: 2px; }
+.dragging-src { opacity: 0.4; }
+.trash-hot { transform: scale(1.15); background: #fecaca !important; }

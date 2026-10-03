@@ -103,7 +103,7 @@
         { id: "eq", label: "=", op: "=" }, { id: "le", label: "≤", op: "<=" },
         { id: "lt", label: "<", op: "<" }
       ],
-      initCode: "{n} = {init};",
+      initCode: "{n} = {init}",
       comment: "整数({init})"
     }
   };

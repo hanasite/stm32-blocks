@@ -498,7 +498,7 @@ test("每种类型都有 declare/initCode/comment，动作带中文标签", () =
         { id: "eq", label: "=", op: "=" }, { id: "le", label: "≤", op: "<=" },
         { id: "lt", label: "<", op: "<" }
       ],
-      initCode: "{n} = {init};",
+      initCode: "{n} = {init}",
       comment: "整数({init})"
     }
   };
@@ -696,7 +696,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 Codegen.generate(project) // -> string（完整 user_code.c 内容，UTF-8，末尾带换行）
 ```
 
-- [ ] **Step 1: 写失败测试 `tests/codegen.test.js`（全文，golden 样例与设计文档 §5.3 逐字符一致）**
+- [x] **Step 1: 写失败测试 `tests/codegen.test.js`（全文，golden 样例与设计文档 §5.3 逐字符一致）**
 
 ```js
 const test = require("node:test");
@@ -793,9 +793,9 @@ test("空主循环生成空 user_loop", () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试看失败** → `node --test tests/codegen.test.js`，Expected: FAIL
+- [x] **Step 2: 跑测试看失败** → `node --test tests/codegen.test.js`，Expected: FAIL（首跑抓到一处不一致：整数 initCode 模板自带分号+生成器补分号 → `count = 0;;`）
 
-- [ ] **Step 3: 实现 `web/js/codegen.js`（全文）**
+- [x] **Step 3: 实现 `web/js/codegen.js`（全文）**
 
 ```js
 (function (root, factory) {
@@ -913,11 +913,11 @@ test("空主循环生成空 user_loop", () => {
 });
 ```
 
-- [ ] **Step 4: 跑测试到全绿** → `node --test tests/codegen.test.js`，Expected: PASS ×4（golden 必须先绿，格式一字都不能差）
+- [x] **Step 4: 跑测试到全绿**（2026-10-03：统一整数 initCode 不带分号后、golden 逐字符一致；全量 PASS ×18）
 
-- [ ] **Step 5: 跑全量测试回归** → `node --test tests/`，Expected: 全绿
+- [x] **Step 5: 跑全量测试回归**（`node --test` PASS ×18）
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add web/js/codegen.js tests/codegen.test.js && git commit -m "feat: 代码生成 codegen.js，golden 测试锁定 §5.3 格式

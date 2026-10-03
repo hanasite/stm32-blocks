@@ -543,11 +543,11 @@ export CUBECLT="${CUBECLT:-/d/STM32CubeCLT_1.18.0}"
 export PATH="$CUBECLT/CMake/bin:$CUBECLT/Ninja:$CUBECLT/GNU-tools-for-STM32/bin:$CUBECLT/STM32CubeProgrammer/bin:$PATH"
 ```
 
-`template/env.bat`：
+`template/env.bat`（**必须纯 ASCII**——UTF-8 中文会被 GBK 码页的 cmd 解析崩坏，实测踩坑）：
 
 ```bat
 @echo off
-rem 把 CubeCLT 工具链挂进 PATH（可用环境变量 CUBECLT 覆盖安装位置）
+rem Prepend CubeCLT toolchain bins to PATH (override install dir via env var CUBECLT)
 if not defined CUBECLT set CUBECLT=D:\STM32CubeCLT_1.18.0
 set PATH=%CUBECLT%\CMake\bin;%CUBECLT%\Ninja;%CUBECLT%\GNU-tools-for-STM32\bin;%CUBECLT%\STM32CubeProgrammer\bin;%PATH%
 ```
@@ -1342,15 +1342,17 @@ if not exist build (
 cmake --build build || goto :fail
 STM32_Programmer_CLI -c port=SWD -w build\firmware.elf -v -rst || goto :fail
 echo.
-echo 编译烧录完成
+echo Build and flash OK.
 pause
 exit /b 0
 :fail
 echo.
-echo 出错了，请看上面的信息
+echo FAILED - see messages above.
 pause
 exit /b 1
 ```
+
+**执行记录（2026-10-03，用户实测触发）**：首版 .bat 带中文注释/提示 → cmd（GBK 码页）把 UTF-8 中文错译、整行解析崩坏（报 `'PATH锛?..' 不是内部或外部命令`）。已全部改纯 ASCII 并做字节级校验；后续任何 .bat 都必须纯 ASCII。
 
 - [x] **Step 5: 写 `template/使用说明.md`（全文）**
 

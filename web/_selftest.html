@@ -408,7 +408,13 @@ window.addEventListener("DOMContentLoaded", function () {
       var dinoBlock = document.querySelector("#loop-slot > .blk:last-child");
       rec("edit-dino-bind", dinoBlock.textContent.indexOf("显示到") >= 0
           && dinoBlock.textContent.indexOf("跳跃输入") >= 0
+          && document.querySelectorAll("#loop-slot > .blk:last-child select").length === 5
           && document.getElementById("code-view").textContent.indexOf("Dino_Frame(&dino9, &oled9, Ir_IsTriggered(&ir9));") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Dino_Frame[^;]*/) || [""])[0]);
+      var dStateSel = document.querySelectorAll("#loop-slot > .blk:last-child select")[4];
+      dStateSel.value = "idle";
+      dStateSel.dispatchEvent(new Event("change", { bubbles: true }));
+      rec("edit-dino-state", document.getElementById("code-view").textContent.indexOf("Dino_Frame(&dino9, &oled9, Ir_IsIdle(&ir9));") >= 0,
           "code=" + (document.getElementById("code-view").textContent.match(/Dino_Frame[^;]*/) || [""])[0]);
       var dJumpSel = document.querySelectorAll("#loop-slot > .blk:last-child select")[3];
       dJumpSel.value = "__hook__";

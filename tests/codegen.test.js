@@ -148,10 +148,17 @@ test("小恐龙组件：多参数绑定生成代码（红外/按键/不接/缺�
     "Dino".padEnd(7) + "dino1;".padEnd(11) + "/* dino1 = 小恐龙游戏(组件) */");
   let code = lines.join("\n");
   assert.ok(code.includes("Dino_Init(&dino1);"));
-  assert.ok(code.includes("Dino_Frame(&dino1, &oled1, Ir_IsTriggered(&ir1));"));
+  assert.ok(code.includes("Dino_Frame(&dino1, &oled1, Ir_IsTriggered(&ir1));"));   // 默认取第一个条件：检测到
+
+  frame.refState = { jump: "idle" };                                              // 红外：未检测到
+  assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, &oled1, Ir_IsIdle(&ir1));"));
 
   frame.refs.jump = key.id;
+  frame.refState = { jump: "released" };                                          // 按键：被松开
+  assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, &oled1, Key_IsReleased(&key1));"));
+  frame.refState = { jump: "pressed" };
   assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, &oled1, Key_IsPressed(&key1));"));
+  delete frame.refState;
 
   frame.refs.jump = "";
   assert.ok(Codegen.generate(p).includes("Dino_Frame(&dino1, &oled1, 0);"));

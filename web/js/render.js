@@ -188,9 +188,24 @@
         var refSel = selectOf(opts2, node.refs[pd.key] || "");
         refSel.onchange = function () {
           node.refs[pd.key] = this.value;
-          (opts.quick || opts.rerender || noop)();
+          (opts.rerender || noop)();   /* 换对象要重渲染：条件下拉要跟着出现/消失 */
         };
         root.appendChild(refSel);
+
+        /* 输入类绑定：后面再跟该对象的条件下拉（ir：检测到/未检测到；key：被按下/被松开） */
+        var boundObj = node.refs[pd.key] ? Model.findObject(project, node.refs[pd.key]) : null;
+        if (pd.refType === "input" && boundObj && Catalog.get(boundObj.type).states.length > 0) {
+          var stateDefs = Catalog.get(boundObj.type).states;
+          var curSt = node.refState ? node.refState[pd.key] : null;
+          if (!stateDefs.some(function (s) { return s.id === curSt; })) { curSt = stateDefs[0].id; }
+          var stSel = selectOf(stateDefs.map(function (s) { return { v: s.id, label: s.label }; }), curSt);
+          stSel.onchange = function () {
+            node.refState = node.refState || {};
+            node.refState[pd.key] = this.value;
+            (opts.quick || opts.rerender || noop)();
+          };
+          root.appendChild(stSel);
+        }
       });
       return root;
     }

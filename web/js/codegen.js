@@ -78,10 +78,12 @@
               map[pd.key] = refObj ? "&" + refObj.name : "0";   /* 缺绑定给 0，引擎侧容错 */
             } else if (refId === "__hook__") {
               map[pd.key] = "DINO_JUMP_HOOK";                  /* 外部钩子：由「请求跳跃」置位 */
-            } else if (refObj && refObj.type === "ir") {
-              map[pd.key] = "Ir_IsTriggered(&" + refObj.name + ")";
-            } else if (refObj && refObj.type === "key") {
-              map[pd.key] = "Key_IsPressed(&" + refObj.name + ")";
+            } else if (refObj && Catalog.get(refObj.type).states.length > 0) {
+              /* 输入对象的条件（按键：被按下/被松开；红外：检测到/未检测到），复用 catalog state 模板 */
+              var stateDefs = Catalog.get(refObj.type).states;
+              var stId = node.refState ? node.refState[pd.key] : null;
+              var stDef = stateDefs.filter(function (s) { return s.id === stId; })[0] || stateDefs[0];
+              map[pd.key] = fill(stDef.code, { n: refObj.name });
             } else {
               map[pd.key] = "0";                                 /* 不接输入 */
             }

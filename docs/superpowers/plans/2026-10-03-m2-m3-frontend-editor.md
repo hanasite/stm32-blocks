@@ -2019,7 +2019,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `template/`（M1 产物）、JSZip（node require `../web/vendor/jszip.min.js`）。
 - Produces: `window.TEMPLATE_ZIP`（base64 字符串）。
 
-- [ ] **Step 1: 实现 `tools/embed-template.js`（全文）**
+- [x] **Step 1: 实现 `tools/embed-template.js`（全文）**
 
 ```js
 #!/usr/bin/env node
@@ -2064,22 +2064,24 @@ async function main() {
 main();
 ```
 
-- [ ] **Step 2: 运行并验证**
+- [x] **Step 2: 运行并验证**
 
 ```bash
 node tools/embed-template.js   # 期望：内嵌 xx 个文件，大小 0.5-2 MB 量级
 node -e "global.window={}; require('F:/kakuns开源项目/stm32-blocks/web/js/template-data.js'); console.log(typeof window.TEMPLATE_ZIP, window.TEMPLATE_ZIP.length)"   # 期望 string + 长度 >100000
 ```
 
-- [ ] **Step 3: 浏览器端到端验证**——`web/index.html` 加 `<script src="js/template-data.js">` 后双击打开；随便拼一个程序 → 点「下载完整工程」→ 得到 `<工程名>.zip`；解压 → VSCode 打开 → F5 → 板子按积木逻辑动（**这是 M3 的核心验收**）。
+- [x] **Step 3: 浏览器端到端验证**——`web/index.html` 加 `<script src="js/template-data.js">` 后双击打开；随便拼一个程序 → 点「下载完整工程」→ 得到 `<工程名>.zip`；解压 → VSCode 打开 → F5 → 板子按积木逻辑动（**这是 M3 的核心验收**；无头端到端已自动验证，真板 F5 留到 M3 彩排）。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/embed-template.js web/js/template-data.js web/index.html && git commit -m "feat: 模板工程内嵌脚本，生成 template-data.js
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
+
+**执行记录**：内嵌 **72 个文件**（含 `.vscode/` 隐藏目录、`使用说明.md`、三个 .bat），`template-data.js` **0.41 MB**（base64 428,652 字符）；`build/` 已按排除表剔除。抽查 zip 清单确认关键文件全在。`_selftest.html` 加了 `template-data.js` 并在末尾新增**第 11 节异步打包端到端**（5 项：模板已内嵌 / 下载截获 Blob 339,555 字节 / 根目录改名 `舵机来回摆/` / 含 build.bat+flash.bat+.vscode / user_code.c 与代码面板逐字符一致）——Edge 无头 **38/38 PASS**（原 33 项 + 新 5 项）。**注意**：git-bash 里 `msedge` 不在 PATH（直接调用退出码 127），要用全路径 `"/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"`。
 
 ---
 

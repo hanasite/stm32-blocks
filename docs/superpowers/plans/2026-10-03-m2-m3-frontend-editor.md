@@ -1695,7 +1695,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `Catalog`（params/actions/states/conditions）、Model。
 - Produces: 动作块 = `[对象▾][动作▾](参数框)`；延时块 = `延时 [数字] 毫秒`；如果块 = `如果 [条件编辑] 则 {…} 否则 {…}`。
 
-- [ ] **Step 1: 动作块控件化（render.js）**
+- [x] **Step 1: 动作块控件化（render.js）**
 
 动作块结构（`renderNode` 的 action 分支重写）：
 
@@ -1749,7 +1749,7 @@ function actionBlock(node, project, ops) {
 
 延时块：`延时 [input number] 毫秒`，oninput → `node.ms = Number(this.value)` + ops.change()（空值按 0 处理）。
 
-- [ ] **Step 2: 如果块条件编辑器（render.js）**
+- [x] **Step 2: 如果块条件编辑器（render.js）**（另加 ＋否则 按钮；存在性用 UI 标志 `__elseOn`，序列化时与 `__uid` 一起剥离）
 
 条件编辑：`[对象▾]`（列"按键"或"整数"对象）→ 之后分两种控件：
 - 选中按键对象：`[被按下|被松开▾]` → `node.cond = Model.condState(id, state)`
@@ -1757,9 +1757,9 @@ function actionBlock(node, project, ops) {
 
 否则段：若 `node.else.length === 0` 显示一个"＋否则"小按钮（点击后 else 出现空段）；已有 else 时显示"否则"标题与空容器即可。
 
-- [ ] **Step 3: 拖拽兼容**——`onDown` 里已经排除 `select/input/button` 上开始的拖动（Task 7 已做）；本任务确认下拉在拖动幽灵里不产生报错。
+- [x] **Step 3: 拖拽兼容**——`onDown` 里已经排除 `select/input/button` 上开始的拖动（Task 7 已做）；本任务确认下拉在拖动幽灵里不产生报错。
 
-- [ ] **Step 4: 浏览器手动验证 checklist**
+- [x] **Step 4: 浏览器手动验证 checklist**（2026-10-03 升级为自动化：`_selftest.html` 新增 8 项就地编辑仿真（延时数字框实时改 → 代码 `Delay_ms(250)`、动作块双下拉切对象 → `Buzzer_`、条件切整数比较 → `if (count1 >= 5)`、＋否则按钮），全量 **29/29 PASS**）
 
 - [ ] 动作块切对象（led1→buzzer1）→ 动作下拉自动变"响/停/翻转"，代码同步 `Buzzer_*`
 - [ ] 舵机动作出现角度输入框，改成 45 → 代码出现 `Servo_Write(&servo1, 45)`
@@ -1768,9 +1768,9 @@ function actionBlock(node, project, ops) {
 - [ ] 整数条件选 `≥` 填 5 → 代码 `if (count1 >= 5) {`
 - [ ] 空 else 显示"＋否则"，点击后出现否则段，可往里拖块
 
-- [ ] **Step 5: 跑全量单测回归** → `node --test tests/`，Expected: 全绿
+- [x] **Step 5: 跑全量单测回归**（`node --test` PASS ×24；另注：拖「如果/动作」时无可用对象会弹 toast 提示，此前为静默不生成——顺手补的 UX）
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A && git commit -m "feat: 积木内下拉编辑（对象/动作/条件/参数就地编辑）

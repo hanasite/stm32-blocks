@@ -219,6 +219,52 @@ window.addEventListener("DOMContentLoaded", function () {
       pex("pointerup", hitT || document.body, tm[0], tm[1]);
       rec("drag-trash-delete", project.loop.length === 0, "loop=" + project.loop.length
           + " tm=" + Math.round(tm[0]) + "," + Math.round(tm[1]));
+
+      // 9) 积木内就地编辑（下拉/数字框）
+      Model.addObject(project, "int", { init: 0 });          // count1
+      window.App.refresh();
+      var slotR = document.getElementById("loop-slot").getBoundingClientRect();
+      var px = slotR.left + 60;
+      cdrag(delayPal, px, slotR.top + 30, [[px - 20, slotR.top + 10], [px, slotR.top + 30]]);
+      rec("edit-delay-added", project.loop.length === 1 && project.loop[0].kind === "delay");
+      var delayNum = document.querySelector("#loop-slot .blk-delay input");
+      delayNum.value = "250";
+      delayNum.dispatchEvent(new Event("input", { bubbles: true }));
+      rec("edit-delay-value", project.loop[0].ms === 250
+          && document.getElementById("code-view").textContent.indexOf("Delay_ms(250)") >= 0,
+          "ms=" + project.loop[0].ms);
+
+      // 动作块：拖入 + 切换对象下拉
+      var actPal = document.querySelector('[data-palette="action"]');
+      var srA = document.getElementById("loop-slot").getBoundingClientRect();
+      cdrag(actPal, px, srA.bottom - 10, [[px, srA.bottom - 40], [px, srA.bottom - 10]]);
+      rec("edit-action-added", project.loop.length === 2 && project.loop[1].kind === "action");
+      var actSels = document.querySelectorAll("#loop-slot .blk-action select");
+      rec("edit-action-selects", actSels.length === 2, "sels=" + actSels.length);
+      var buzObj = project.objects.filter(function (o) { return o.type === "buzzer"; })[0];
+      actSels[0].value = buzObj.id;
+      actSels[0].dispatchEvent(new Event("change", { bubbles: true }));
+      rec("edit-action-switch", document.getElementById("code-view").textContent.indexOf("Buzzer_") >= 0);
+
+      // 如果块：条件切到整数比较 + 数值框
+      var srB = document.getElementById("loop-slot").getBoundingClientRect();
+      cdrag(ifPal, px, srB.bottom - 10, [[px, srB.bottom - 40], [px, srB.bottom - 10]]);
+      rec("edit-if-added", project.loop.length === 3 && project.loop[2].kind === "if");
+      var intObj = project.objects.filter(function (o) { return o.type === "int"; })[0];
+      var condSel = document.querySelector("#loop-slot .blk-if select");
+      condSel.value = intObj.id;
+      condSel.dispatchEvent(new Event("change", { bubbles: true }));
+      var condNum = document.querySelector('#loop-slot .blk-if input[type="number"]');
+      condNum.value = "5";
+      condNum.dispatchEvent(new Event("input", { bubbles: true }));
+      rec("edit-if-compare", project.loop[2].cond.kind === "compare" && project.loop[2].cond.value === 5
+          && document.getElementById("code-view").textContent.indexOf("if (count1 >= 5)") >= 0,
+          "cond=" + JSON.stringify(project.loop[2].cond));
+
+      // ＋否则 按钮
+      var addElseBtn = document.querySelector("#loop-slot .add-else-btn");
+      addElseBtn.click();
+      rec("edit-else-btn", !!document.querySelector("#loop-slot .if-else-head"));
     } catch (err) {
       out.push("SELFTEST FAIL exception :: " + (err && err.message));
     }

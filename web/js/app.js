@@ -6,8 +6,16 @@
 
   function change() { refresh(); }
 
-  function refresh() {
-    // 1) 校验 → 横幅 + 下载按钮
+  function toast(msg) {
+    var t = document.createElement("div");
+    t.className = "toast";
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function () { t.remove(); }, 2600);
+  }
+
+  function quickRefresh() {
+    // 校验 → 横幅 + 下载按钮
     var result = Validate.check(project);
     var banner = document.getElementById("error-banner");
     if (result.errors.length > 0) {
@@ -18,9 +26,16 @@
       banner.classList.add("hidden");
       document.getElementById("btn-download").disabled = false;
     }
-    // 2) 代码
+    // 代码面板
     Render.renderCode(Codegen.generate(project));
-    // 3) 对象区
+    // 自动保存
+    try { localStorage.setItem(LS_KEY, Model.serialize(project)); } catch (e) { /* 隐私模式忽略 */ }
+  }
+
+  var blockOpts = { rerender: refresh, quick: quickRefresh };
+
+  function refresh() {
+    quickRefresh();
     Render.renderObjects(document.getElementById("object-list"), project, {
       onDelete: function (id) {
         var refs = Model.countReferences(project, id);
@@ -31,10 +46,7 @@
         ObjectsUI.open(project, id, function () { change(); });
       }
     });
-    // 4) 主循环渲染
-    Render.renderBlockList(document.getElementById("loop-slot"), project.loop, project);
-    // 5) 自动保存
-    try { localStorage.setItem(LS_KEY, Model.serialize(project)); } catch (e) { /* 隐私模式忽略 */ }
+    Render.renderBlockList(document.getElementById("loop-slot"), project.loop, project, blockOpts);
   }
 
   /* ---------- 拖拽落地辅助 ---------- */
@@ -108,7 +120,13 @@
         var index = dropIndexAt(info, targetList);
         if (info.paletteType) {
           var node = makePaletteNode(info.paletteType, project);
-          if (node) { targetList.splice(index, 0, node); }
+          if (node) {
+            targetList.splice(index, 0, node);
+          } else {
+            toast(info.paletteType === "if"
+              ? "先在左边建一个「按键」或「整数」对象，再拖「如果」"
+              : "先在左边建一个 LED / 蜂鸣器 / 舵机 / 整数 对象，再拖「动作」");
+          }
         } else {
           var existing = Model.findNodeByUid(project, info.uid);
           if (existing) { Model.moveNode(project, existing, targetList, index); }

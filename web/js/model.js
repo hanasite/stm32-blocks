@@ -144,7 +144,9 @@
   }
 
   function serialize(project) {
-    return JSON.stringify(project, function (k, v) { return k === "__uid" ? undefined : v; });
+    return JSON.stringify(project, function (k, v) {
+      return (k === "__uid" || k === "__elseOn") ? undefined : v;
+    });
   }
   function deserialize(str) {
     var p = JSON.parse(str);

@@ -72,8 +72,10 @@ test("序列化往返", () => {
 
 test("serialize 不包含 __uid（UI 临时属性）", () => {
   const p = Model.newProject("t");
-  const d = Model.nodeDelay(5); d.__uid = "n1"; p.loop.push(d);
-  assert.ok(!Model.serialize(p).includes("__uid"));
+  const d = Model.nodeDelay(5); d.__uid = "n1"; d.__elseOn = true; p.loop.push(d);
+  const s = Model.serialize(p);
+  assert.ok(!s.includes("__uid"));
+  assert.ok(!s.includes("__elseOn"));
 });
 
 test("findNodeByUid / deleteNodeByUid", () => {

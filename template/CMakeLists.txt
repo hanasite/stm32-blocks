@@ -40,6 +40,7 @@ include_directories(
 )
 
 add_executable(firmware ${CORE_SOURCES} ${HAL_SOURCES} ${STARTUP})
+set_target_properties(firmware PROPERTIES SUFFIX ".elf")
 
 # 启动文件需要 C 预处理器（与 CubeMX Makefile 同做法）
 target_compile_options(firmware PRIVATE $<$<COMPILE_LANGUAGE:ASM>:-x assembler-with-cpp>)

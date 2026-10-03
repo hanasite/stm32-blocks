@@ -63,13 +63,13 @@ Model.condCompare(objectId, op, value)         // -> {kind:"compare", objectId, 
 Model.serialize(project) / Model.deserialize(str)  // JSON 往返；deserialize 校验 version===1
 ```
 
-- [ ] **Step 1: 环境检查**
+- [x] **Step 1: 环境检查**（node v24.14.1）
 
 ```bash
 node --version   # 期望 v18 或更高；更低就先装 Node LTS
 ```
 
-- [ ] **Step 2: 写失败测试 `tests/model.test.js`（全文）**
+- [x] **Step 2: 写失败测试 `tests/model.test.js`（全文）**
 
 ```js
 const test = require("node:test");
@@ -150,7 +150,7 @@ test("序列化往返", () => {
 Run: `node --test tests/`
 Expected: FAIL（`Cannot find module '../web/js/model.js'`）
 
-- [ ] **Step 4: 实现 `web/js/model.js`（全文）**
+- [x] **Step 4: 实现 `web/js/model.js`（全文）**
 
 ```js
 (function (root, factory) {
@@ -295,7 +295,7 @@ Expected: FAIL（`Cannot find module '../web/js/model.js'`）
 Run: `node --test tests/`
 Expected: PASS ×6
 
-- [ ] **Step 6: 写占位 `web/index.html`**（后面任务填充，先保证骨架在）
+- [x] **Step 6: 写占位 `web/index.html`**（后面任务填充，先保证骨架在）
 
 ```html
 <!DOCTYPE html>
@@ -310,7 +310,7 @@ Expected: PASS ×6
 </html>
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add web tests && git commit -m "feat: 前端骨架与工程数据模型 model.js（含 Node 测试）

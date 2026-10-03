@@ -1356,6 +1356,8 @@ exit /b 1
 
 **执行记录（2026-10-03 下午·中文路径故障战，最终结论）**：用户 VSCode 运行 Build 任务连续失败，三连排查——① `.bat` 中文注释被 GBK 码页 cmd 解析崩坏（已改纯 ASCII）；② VSCode 环境设有 `NoDefaultCurrentDirectoryInExePath=1`，cmd 不搜当前目录，脚本引用需 `.\` 前缀（`env.bat` → `.\env.bat`）；③ **根因：cmake 3.28（CubeCLT 版）的进程工作目录为非 ASCII 路径时，configure 必崩（0xC0000409 静默崩溃）**——二分验证与参数相对/绝对无关（`cmake -E touch` 等文件操作不受影响；ninja/gcc 在中文构建目录下正常）。规避：`build.bat` 先 `cd /d C:\` 再以绝对路径调用 cmake——**模板必须保留此规避**（新人工程 zip 根目录名为中文「小明的作品」）。同时项目整体迁移到 `F:\STM32\stm32-blocks`（纯 ASCII 路径，从源头拆除隐患），旧目录归档。
 
+**执行记录（2026-10-03 晚·真板全静默的终极根因）**：烧录/接线/固件全部正常但板子完全无反应，最终定位为**缺 `Core/Src/stm32f1xx_it.c`**——STM32Cube HAL 不自带 `SysTick_Handler`（CubeMX 工程惯例放在 `stm32f1xx_it.c` 里调 `HAL_IncTick()`）；缺失时启动文件的弱符号默认处理程序（`b .` 死循环）兜底，**开机约 1ms 后第一次 SysTick 即永久卡死**。取证链：升级 ST-Link 固件（V2J37→V2J48，克隆棒旧固件还会让 gdbserver 拒服务）→ `ST-LINK_gdbserver -d -m 0` + gdb 采样 → PC 停在弱处理程序死循环、xPSR.IPSR=15(SysTick)、栈帧显示中断发生在 `HAL_RCC_OscConfig`（启动后约 1ms）、flash 向量表 0x3C 指向弱符号 `0xc529`。修复：新增 `stm32f1xx_it.c` 并入 CMakeLists；修复后 RAM 信标 magic=0xB0071234 写入、计数与 250ms 循环周期吻合地增长。**教训：手写 HAL 工程的 Task 2 验收必须包含"跑起来"（当时只验了编译+烧录成功，漏了毫秒级运行）。**
+
 - [x] **Step 5: 写 `template/使用说明.md`（全文）**
 
 ```markdown
@@ -1435,8 +1437,8 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 - [x] `template/` 完整：CubeCLT 一条命令可编译（0 error），`build/firmware.elf` 生成（2026-10-03 通过，组合冒烟 FLASH 8636B / 64K）
 - [x] ST-Link 可烧录，`STM32_Programmer_CLI` 输出 `Download verified successfully`（2026-10-03 实测）
-- [ ] 组合冒烟在真板跑通（按键→LED+蜂鸣器+舵机）（固件已烧入并 Reset 起跑，待用户目视确认现象）
-- [ ] VSCode F5 与 `编译烧录.bat` 两条路径都可用（bat/命令行路径 ✓；F5 待用户在 VSCode 复验）
+- [x] 组合冒烟在真板跑通（按键→LED+蜂鸣器+舵机）——2026-10-03 用户确认"**全部正常**"（含 OLED 诊断屏与按键响应）
+- [x] VSCode 任务 / `编译烧录.bat` / 命令行 路径可用（实测）；F5 图形调试为可选项（launch.json 已备，依赖升级后的 ST-Link gdbserver，非 M1 阻塞项）
 - [x] BSP 四个驱动 API 与设计文档 §4.5 完全一致（M2 生成器将按此生成代码）
 
 ## M2 接口冻结（本计划交付给 M2 的契约）

@@ -16,16 +16,14 @@ void user_setup(void)
 
 void user_loop(void)
 {
-    if (Key_IsPressed(&key1))
-    {
+    if (Key_IsPressed(&key1)) {
         Led_On(&led1);
         Buzzer_On(&buzzer1);
         Servo_Write(&servo1, 90);
-    }
-    else
-    {
+    } else {
         Led_Off(&led1);
         Buzzer_Off(&buzzer1);
         Servo_Write(&servo1, 0);
+        Delay_ms(20);
     }
 }

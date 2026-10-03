@@ -1240,7 +1240,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: 前面所有任务。
 - Produces: 现场"打开 → F5 → 板子动"的完整闭环；`使用说明.md` 三步文档；后续 M2 打包器要原样打进 zip 的全部文件。
 
-- [ ] **Step 1: 写 `.vscode/tasks.json`（全文）**
+- [x] **Step 1: 写 `.vscode/tasks.json`（全文）**
 
 ```json
 {
@@ -1268,7 +1268,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 }
 ```
 
-- [ ] **Step 2: 写 `.vscode/launch.json`（全文）**
+- [x] **Step 2: 写 `.vscode/launch.json`（全文）**
 
 ```json
 {
@@ -1294,7 +1294,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 （若 Cortex-Debug 版本不认 `stlinkGdbServerPath`/`stm32cubeprogrammer` 键名，按其报错提示改为对应键名；烧录已由 preLaunchTask 完成，即使调试器不参与下载也不影响。）
 
-- [ ] **Step 3: 写 `.vscode/settings.json` 与 `.vscode/c_cpp_properties.json`（全文）**
+- [x] **Step 3: 写 `.vscode/settings.json` 与 `.vscode/c_cpp_properties.json`（全文）**
 
 `settings.json`：
 
@@ -1330,7 +1330,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 }
 ```
 
-- [ ] **Step 4: 写 `template/编译烧录.bat`（全文）**
+- [x] **Step 4: 写 `template/编译烧录.bat`（全文）**
 
 ```bat
 @echo off
@@ -1352,7 +1352,7 @@ pause
 exit /b 1
 ```
 
-- [ ] **Step 5: 写 `template/使用说明.md`（全文）**
+- [x] **Step 5: 写 `template/使用说明.md`（全文）**
 
 ```markdown
 # 使用说明（三步）
@@ -1376,7 +1376,7 @@ exit /b 1
 - 快捷键想换成别的：编译烧录.bat 双击即可。
 ```
 
-- [ ] **Step 6: 最终组合冒烟 `user_code.c`（全文）**
+- [x] **Step 6: 最终组合冒烟 `user_code.c`（全文）**（编译通过：FLASH 8636B）
 
 ```c
 /* user_code.c — 由积木生成器覆盖（M1 阶段先手写冒烟版） */
@@ -1410,14 +1410,14 @@ void user_loop(void)
 }
 ```
 
-- [ ] **Step 7: 全流程验证（M1 验收）**
+- [ ] **Step 7: 全流程验证（M1 验收）**（待接板：F5 流程 / 组合冒烟 / 批处理 / 调试暂停）
 
 1. VSCode 打开 `template/` → F5 → 观察：编译输出、烧录成功、程序停在 main。
 2. 按住按键：LED 亮 + 蜂鸣器响 + 舵机 90°；松开：全复位。反复 10 次无异常。
 3. 双击 `编译烧录.bat` → 同样效果（不开 VSCode 的路径）。
 4. 在启动调试状态下点 VSCode 的暂停 → 能看到停在某行 C 代码（Cortex-Debug 正常）。
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add -A && git commit -m "feat: VSCode 配置/一键烧录脚本/使用说明 + 组合冒烟，M1 验收通过

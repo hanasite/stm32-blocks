@@ -1,0 +1,6 @@
+{
+  "files.exclude": { "build": true },
+  "terminal.integrated.env.windows": {
+    "PATH": "D:\\STM32CubeCLT_1.18.0\\CMake\\bin;D:\\STM32CubeCLT_1.18.0\\Ninja;D:\\STM32CubeCLT_1.18.0\\GNU-tools-for-STM32\\bin;D:\\STM32CubeCLT_1.18.0\\STM32CubeProgrammer\\bin;${env:PATH}"
+  }
+}

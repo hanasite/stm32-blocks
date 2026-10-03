@@ -12,6 +12,7 @@ set(MCU_FLAGS -mcpu=cortex-m3 -mthumb)
 
 set(CORE_SOURCES
   Core/Src/main.c
+  Core/Src/stm32f1xx_it.c
   Core/Src/stm32f1xx_hal_msp.c
   Core/Src/system_stm32f1xx.c
   Core/Src/user_app.c

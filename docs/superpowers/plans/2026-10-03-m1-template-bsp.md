@@ -1278,11 +1278,12 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
       "name": "Debug (ST-Link)",
       "type": "cortex-debug",
       "request": "launch",
-      "servertype": "stlink-gdb-server",
+      "servertype": "stlink",
       "cwd": "${workspaceFolder}",
       "executable": "${workspaceFolder}/build/firmware.elf",
-      "stlinkGdbServerPath": "D:/STM32CubeCLT_1.18.0/STLink-gdb-server/bin/ST-LINK_gdbserver.exe",
+      "stlinkPath": "D:/STM32CubeCLT_1.18.0/STLink-gdb-server/bin/ST-LINK_gdbserver.exe",
       "stm32cubeprogrammer": "D:/STM32CubeCLT_1.18.0/STM32CubeProgrammer/bin",
+      "armToolchainPath": "D:/STM32CubeCLT_1.18.0/GNU-tools-for-STM32/bin",
       "interface": "swd",
       "device": "STM32F103C8",
       "runToEntryPoint": "main",
@@ -1292,7 +1293,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 }
 ```
 
-（若 Cortex-Debug 版本不认 `stlinkGdbServerPath`/`stm32cubeprogrammer` 键名，按其报错提示改为对应键名；烧录已由 preLaunchTask 完成，即使调试器不参与下载也不影响。）
+**执行记录（2026-10-03 深夜，M3 彩排时修正）**：原稿 `"servertype": "stlink-gdb-server"` + `"stlinkGdbServerPath"` 在 cortex-debug 1.12.1 上直接报 `Invalid servertype`（合法值：jlink/openocd/**stlink**/stutil/pyocd/bmp/pe/qemu/external）。对 1.12.1 源码核实：`case "stlink"` 走 ST-Link GDB Server，路径键名是 **`stlinkPath`**（扩展会把它复制进 serverpath；`stlinkGdbServerPath` 在扩展里零出现），并新增 **`armToolchainPath`**（否则 gdb 找不到 arm-none-eabi-gdb）。三处同步修正：`template/.vscode/launch.json`、仓库根 `.vscode/launch.json`、用户解压出的 `F:\STM32HAL\Cmake\按键点灯\按键点灯\.vscode\launch.json`；template-data.js 已重新生成。
 
 - [x] **Step 3: 写 `.vscode/settings.json` 与 `.vscode/c_cpp_properties.json`（全文）**
 

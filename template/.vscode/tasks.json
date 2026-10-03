@@ -5,7 +5,7 @@
       "label": "Build",
       "type": "shell",
       "command": "cmd",
-      "args": ["/c", "env.bat && cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake/arm-gcc-toolchain.cmake && cmake --build build"],
+      "args": ["/c", ".\\build.bat"],
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": ["$gcc"],
       "group": { "kind": "build", "isDefault": true }
@@ -15,7 +15,7 @@
       "dependsOn": "Build",
       "type": "shell",
       "command": "cmd",
-      "args": ["/c", "env.bat && STM32_Programmer_CLI -c port=SWD -w build\\firmware.elf -v -rst"],
+      "args": ["/c", ".\\flash.bat"],
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": []
     }

@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - 工具链根目录 `D:\STM32CubeCLT_1.18.0`（环境变量 `CUBECLT` 可覆盖）；**不假设其在 PATH 中**，一切脚本自己拼 PATH。
-- 仓库根：`F:\kakuns开源项目\stm32-blocks`；本计划全部工作在 `template/` 与 `tools/` 下。
+- 仓库根：`F:\STM32\stm32-blocks`（2026-10-03 迁移，原 `F:\kakuns开源项目\stm32-blocks` 归档）；本计划全部工作在 `template/` 与 `tools/` 下。
 - 命令在 Git Bash（Windows）执行；`.bat` 为 cmd 专用。硬件相关命令（烧录/观察）需要真板 + ST-Link 在场，执行前提示用户接线。
 - 代码风格：C99、4 空格缩进、K&R 大括号、文件名小写；**驱动/工程源文件纯 ASCII**（中文只在 md 文档与生成代码注释里）。
 - 冒烟接线（M1 固定用这套）：按键 PA1↔GND（内部上拉）、有源蜂鸣器信号 PB1（低电平响）、舵机信号 PA0（TIM2_CH1）、板载 LED PC13（**低电平亮**）；ST-Link：SWDIO/SWCLK/GND/3V3。
@@ -1353,6 +1353,8 @@ exit /b 1
 ```
 
 **执行记录（2026-10-03，用户实测触发）**：首版 .bat 带中文注释/提示 → cmd（GBK 码页）把 UTF-8 中文错译、整行解析崩坏（报 `'PATH锛?..' 不是内部或外部命令`）。已全部改纯 ASCII 并做字节级校验；后续任何 .bat 都必须纯 ASCII。
+
+**执行记录（2026-10-03 下午·中文路径故障战，最终结论）**：用户 VSCode 运行 Build 任务连续失败，三连排查——① `.bat` 中文注释被 GBK 码页 cmd 解析崩坏（已改纯 ASCII）；② VSCode 环境设有 `NoDefaultCurrentDirectoryInExePath=1`，cmd 不搜当前目录，脚本引用需 `.\` 前缀（`env.bat` → `.\env.bat`）；③ **根因：cmake 3.28（CubeCLT 版）的进程工作目录为非 ASCII 路径时，configure 必崩（0xC0000409 静默崩溃）**——二分验证与参数相对/绝对无关（`cmake -E touch` 等文件操作不受影响；ninja/gcc 在中文构建目录下正常）。规避：`build.bat` 先 `cd /d C:\` 再以绝对路径调用 cmake——**模板必须保留此规避**（新人工程 zip 根目录名为中文「小明的作品」）。同时项目整体迁移到 `F:\STM32\stm32-blocks`（纯 ASCII 路径，从源头拆除隐患），旧目录归档。
 
 - [x] **Step 5: 写 `template/使用说明.md`（全文）**
 

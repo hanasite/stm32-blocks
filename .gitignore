@@ -3,3 +3,4 @@ desktop.ini
 *.log
 build/
 template/.settings/
+local-builds/

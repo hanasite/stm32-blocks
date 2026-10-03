@@ -14,6 +14,9 @@
   <button id="btn-import">导入工程</button>
   <input id="import-file" type="file" accept=".json" class="hidden">
   <div id="error-banner" class="hidden"></div>
+  <span id="bridge-status" class="hidden"></span>
+  <button id="btn-build" class="hidden" disabled title="调用本机 CubeCLT 编译当前积木程序">🔨 编译</button>
+  <button id="btn-flash" class="hidden" disabled title="编译并烧录到板子（需要插好 ST-Link）">⚡ 编译并烧录</button>
   <button id="btn-download" disabled>⬇ 下载完整工程</button>
 </header>
 <main>
@@ -51,6 +54,12 @@
     <p id="dlg-hint" class="hidden"></p>
     <menu><button value="cancel">取消</button><button id="dlg-ok" value="ok">确定</button></menu>
   </form>
+</dialog>
+
+<dialog id="log-dialog">
+  <h3 id="log-title">编译中…</h3>
+  <pre id="log-view"></pre>
+  <menu><button id="log-close" type="button">关闭</button></menu>
 </dialog>
 
 <script src="vendor/jszip.min.js"></script>

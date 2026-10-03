@@ -15,17 +15,22 @@
   }
 
   function quickRefresh() {
-    // 校验 → 横幅 + 下载按钮
+    // 校验 → 横幅 + 下载/编译按钮
     var result = Validate.check(project);
+    var bad = result.errors.length > 0;
     var banner = document.getElementById("error-banner");
-    if (result.errors.length > 0) {
+    if (bad) {
       banner.textContent = result.errors.map(function (e) { return e.message; }).join("；");
       banner.classList.remove("hidden");
-      document.getElementById("btn-download").disabled = true;
     } else {
       banner.classList.add("hidden");
-      document.getElementById("btn-download").disabled = false;
     }
+    lastValid = !bad;
+    document.getElementById("btn-download").disabled = bad;
+    ["btn-build", "btn-flash"].forEach(function (id) {
+      var b = document.getElementById(id);
+      if (b) { b.disabled = bad; }
+    });
     // 代码面板（带 trace 用于悬停联动）
     lastTrace = {};
     Render.renderCode(Codegen.generate(project, { trace: lastTrace }));
@@ -98,6 +103,74 @@
     return node;
   }
 
+  /* ---------- 本地编译服务（可选增强；探测不到则保持纯离线模式） ---------- */
+
+  var BRIDGE = (location.protocol === "http:" || location.protocol === "https:") ? "" : "http://127.0.0.1:8899";
+  var bridgeInfo = null;
+  var lastValid = true;
+
+  function bridgeFetch(pathname, body) {
+    var opts;
+    if (body !== undefined) {
+      opts = { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+    }
+    return fetch(BRIDGE + pathname, opts).then(function (r) { return r.json(); });
+  }
+
+  function probeBridge() {
+    var timeout = (typeof AbortSignal !== "undefined" && AbortSignal.timeout) ? AbortSignal.timeout(1500) : undefined;
+    fetch(BRIDGE + "/api/ping", { signal: timeout })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || !j.ok) { return; }
+        bridgeInfo = j;
+        var chip = document.getElementById("bridge-status");
+        if (chip) {
+          chip.textContent = j.cubecltOk ? "本地工具链已连接" : "本地服务在线（未找到 CubeCLT）";
+          chip.title = "CubeCLT: " + j.cubeclt + "\n" + (j.gcc || "未探测到 gcc");
+          chip.classList.remove("hidden");
+        }
+        ["btn-build", "btn-flash"].forEach(function (id) {
+          var b = document.getElementById(id);
+          if (b) { b.classList.remove("hidden"); b.disabled = !lastValid; }
+        });
+      })
+      .catch(function () { /* 没有本地服务：静默保持隐藏 */ });
+  }
+
+  function runBridge(kind) {
+    var name = project.projectName || "我的工程";
+    var dlg = document.getElementById("log-dialog");
+    var title = document.getElementById("log-title");
+    var view = document.getElementById("log-view");
+    title.textContent = kind === "flash" ? "编译并烧录中…（通常 5～15 秒）" : "编译中…（通常 3～10 秒）";
+    view.textContent = "正在调用本机工具链…";
+    if (dlg && !dlg.open) { dlg.showModal(); }
+    bridgeFetch("/api/build", { name: name, code: Codegen.generate(project) })
+      .then(function (b) {
+        if (!b.ok) {
+          title.textContent = "❌ 编译失败（" + b.secs + "s）";
+          view.textContent = b.log || "（无日志）";
+          return null;
+        }
+        if (kind !== "flash") {
+          title.textContent = "✅ 编译成功（" + b.secs + "s）";
+          view.textContent = "产物目录：" + b.dir + "\n" + (b.log || "").split("\n").slice(-8).join("\n");
+          return null;
+        }
+        title.textContent = "编译成功（" + b.secs + "s），正在烧录…";
+        view.textContent = "正在连接 ST-Link…";
+        return bridgeFetch("/api/flash", { name: name }).then(function (f) {
+          title.textContent = f.ok ? "✅ 烧录完成（" + f.secs + "s），板子应该动起来了" : "❌ 烧录失败（" + f.secs + "s）";
+          view.textContent = f.log || "（无日志）";
+        });
+      })
+      .catch(function (e) {
+        title.textContent = "❌ 连接本地服务失败";
+        view.textContent = "服务可能已退出——重新双击「启动本地编译服务.bat」即可。\n" + ((e && e.message) || e);
+      });
+  }
+
   function init() {
     var saved = null;
     try { saved = localStorage.getItem(LS_KEY); } catch (e) {}
@@ -126,6 +199,13 @@
         })
         .catch(function (err) { alert("打包失败：" + err.message); });
     };
+    var btnBuild = document.getElementById("btn-build");
+    if (btnBuild) { btnBuild.onclick = function () { runBridge("build"); }; }
+    var btnFlash = document.getElementById("btn-flash");
+    if (btnFlash) { btnFlash.onclick = function () { runBridge("flash"); }; }
+    var logClose = document.getElementById("log-close");
+    if (logClose) { logClose.onclick = function () { document.getElementById("log-dialog").close(); }; }
+    probeBridge();
 
     Examples.list().forEach(function (e) {
       var opt = document.createElement("option");
@@ -199,7 +279,8 @@
 
   window.App = {
     init: init, refresh: refresh, getProject: function () { return project; },
-    resolveDropList: resolveDropList, dropIndexAt: dropIndexAt, makePaletteNode: makePaletteNode
+    resolveDropList: resolveDropList, dropIndexAt: dropIndexAt, makePaletteNode: makePaletteNode,
+    getBridge: function () { return bridgeInfo; }
   };
   document.addEventListener("DOMContentLoaded", init);
 })();

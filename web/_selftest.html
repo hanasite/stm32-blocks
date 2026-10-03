@@ -9,6 +9,10 @@
 <header>
   <h1>STM32 积木工坊</h1>
   <input id="project-name" type="text" value="我的工程" title="工程名（下载的文件夹名）">
+  <select id="example-select"><option value="">载入示例…</option></select>
+  <button id="btn-export">导出工程</button>
+  <button id="btn-import">导入工程</button>
+  <input id="import-file" type="file" accept=".json" class="hidden">
   <div id="error-banner" class="hidden"></div>
   <button id="btn-download" disabled>⬇ 下载完整工程</button>
 </header>
@@ -265,6 +269,28 @@ window.addEventListener("DOMContentLoaded", function () {
       var addElseBtn = document.querySelector("#loop-slot .add-else-btn");
       addElseBtn.click();
       rec("edit-else-btn", !!document.querySelector("#loop-slot .if-else-head"));
+
+      // 10) 示例菜单 / 导出 / 悬停联动
+      rec("menu-options", document.querySelectorAll("#example-select option").length === 4,
+          "opts=" + document.querySelectorAll("#example-select option").length);
+      var exSel = document.getElementById("example-select");
+      exSel.value = "sweep";
+      exSel.dispatchEvent(new Event("change", { bubbles: true }));
+      project = window.App.getProject();   // 载入示例后 app 内部换了工程对象，重新获取
+      rec("menu-load-example", project.projectName === "舵机来回摆" && project.loop.length === 4,
+          "name=" + project.projectName + " loop=" + project.loop.length);
+      var capURL = null;
+      var origCOU = URL.createObjectURL;
+      URL.createObjectURL = function (b) { capURL = b; return "blob:test"; };
+      document.getElementById("btn-export").click();
+      URL.createObjectURL = origCOU;
+      rec("export-blob", !!capURL);
+      var blk0 = document.querySelector("#loop-slot .blk");
+      blk0.dispatchEvent(new MouseEvent("mouseenter"));
+      var hlCount = document.querySelectorAll("#code-view .code-hl").length;
+      blk0.dispatchEvent(new MouseEvent("mouseleave"));
+      var hlAfter = document.querySelectorAll("#code-view .code-hl").length;
+      rec("hover-highlight", hlCount > 0 && hlAfter === 0, "hl=" + hlCount + " after=" + hlAfter);
     } catch (err) {
       out.push("SELFTEST FAIL exception :: " + (err && err.message));
     }

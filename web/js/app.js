@@ -26,15 +26,28 @@
       banner.classList.add("hidden");
       document.getElementById("btn-download").disabled = false;
     }
-    // 代码面板
-    Render.renderCode(Codegen.generate(project));
+    // 代码面板（带 trace 用于悬停联动）
+    lastTrace = {};
+    Render.renderCode(Codegen.generate(project, { trace: lastTrace }));
     // 自动保存
     try { localStorage.setItem(LS_KEY, Model.serialize(project)); } catch (e) { /* 隐私模式忽略 */ }
   }
 
-  var blockOpts = { rerender: refresh, quick: quickRefresh };
+  var lastTrace = {};
+
+  function hoverLines(uid, on) {
+    var range = lastTrace[uid];
+    if (!range) { return; }
+    for (var i = range[0]; i <= range[1]; i++) {
+      var lineEl = document.querySelector('.code-line[data-line="' + i + '"]');
+      if (lineEl) { lineEl.classList.toggle("code-hl", on); }
+    }
+  }
+
+  var blockOpts = { rerender: refresh, quick: quickRefresh, hover: hoverLines };
 
   function refresh() {
+    Render.assignUids(project.loop);   // 先给新节点分配 uid，代码生成的 trace 才查得到
     quickRefresh();
     Render.renderObjects(document.getElementById("object-list"), project, {
       onDelete: function (id) {
@@ -103,6 +116,43 @@
     };
     document.getElementById("btn-download").onclick = function () {
       alert("打包功能开发中（Task 10/11）");
+    };
+
+    Examples.list().forEach(function (e) {
+      var opt = document.createElement("option");
+      opt.value = e.id; opt.textContent = e.label;
+      document.getElementById("example-select").appendChild(opt);
+    });
+    document.getElementById("example-select").onchange = function () {
+      if (!this.value) { return; }
+      if (window.confirm("载入示例会覆盖当前工程，继续？")) {
+        project = Examples.load(this.value);
+        document.getElementById("project-name").value = project.projectName;
+        change();
+      }
+      this.value = "";
+    };
+    document.getElementById("btn-export").onclick = function () {
+      var blob = new Blob([Model.serialize(project)], { type: "application/json" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = (project.projectName || "工程") + ".json";
+      a.click();
+    };
+    document.getElementById("btn-import").onclick = function () { document.getElementById("import-file").click(); };
+    document.getElementById("import-file").onchange = function () {
+      var file = this.files[0];
+      if (!file) { return; }
+      var reader = new FileReader();
+      reader.onload = function () {
+        try {
+          project = Model.deserialize(reader.result);
+          document.getElementById("project-name").value = project.projectName;
+          change();
+        } catch (err) { alert("导入失败：" + err.message); }
+      };
+      reader.readAsText(file);
+      this.value = "";
     };
 
     DragDrop.init({

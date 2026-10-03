@@ -58,10 +58,11 @@
     return obj.name + " " + op + " " + cond.value;
   }
 
-  function emitNodes(nodes, depth, project, out) {
+  function emitNodes(nodes, depth, project, out, trace) {
     var pad = INDENT.repeat(depth);
     nodes.forEach(function (node) {
       var obj;
+      var start = out.length;
       if (node.kind === "delay") {
         out.push(pad + "Delay_ms(" + node.ms + ");");
       } else if (node.kind === "action") {
@@ -72,17 +73,19 @@
         out.push(pad + fill(act.code, map));
       } else if (node.kind === "if") {
         out.push(pad + "if (" + emitCondition(node.cond, project) + ") {");
-        emitNodes(node.then, depth + 1, project, out);
+        emitNodes(node.then, depth + 1, project, out, trace);
         if (node.else.length > 0) {
           out.push(pad + "} else {");
-          emitNodes(node.else, depth + 1, project, out);
+          emitNodes(node.else, depth + 1, project, out, trace);
         }
         out.push(pad + "}");
       }
+      if (trace && node.__uid) { trace[node.__uid] = [start, out.length - 1]; }
     });
   }
 
-  function generate(project) {
+  function generate(project, opts) {
+    var trace = (opts && opts.trace) || null;   // 侧通道：node.__uid → [起始行, 结束行]
     var out = [];
     out.push("/* user_code.c — 由积木自动生成，请勿手改 */");
     out.push("#include \"user_app.h\"");
@@ -104,7 +107,7 @@
     out.push("");
     out.push("void user_loop(void)");
     out.push("{");
-    emitNodes(project.loop, 1, project, out);
+    emitNodes(project.loop, 1, project, out, trace);
     out.push("}");
     return out.join("\n") + "\n";
   }

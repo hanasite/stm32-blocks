@@ -38,6 +38,13 @@
     return Object.keys(obj.params).map(function (k) { return k + "=" + obj.params[k]; }).join(" ");
   }
 
+  function assignUids(nodes) {
+    nodes.forEach(function (node) {
+      if (!node.__uid) { node.__uid = "n" + (++uidSeq); }
+      if (node.kind === "if") { assignUids(node.then); assignUids(node.else); }
+    });
+  }
+
   function renderBlockList(container, nodes, project, opts) {
     opts = opts || {};
     container.innerHTML = "";
@@ -218,6 +225,8 @@
     } else {
       root = el("div", "blk", "?");
     }
+    root.addEventListener("mouseenter", function () { (opts.hover || noop)(node.__uid, true); });
+    root.addEventListener("mouseleave", function () { (opts.hover || noop)(node.__uid, false); });
     root.dataset.nodeId = node.__uid;
     return root;
   }
@@ -231,8 +240,15 @@
   }
 
   function renderCode(code) {
-    document.getElementById("code-view").innerHTML = highlight(code);
+    var view = document.getElementById("code-view");
+    var lines = code.split("\n");
+    var html = "";
+    for (var i = 0; i < lines.length; i++) {
+      var h = highlight(lines[i]);
+      html += '<div class="code-line" data-line="' + i + '">' + (h === "" ? "&nbsp;" : h) + "</div>";
+    }
+    view.innerHTML = html;
   }
 
-  return { el: el, renderObjects: renderObjects, renderBlockList: renderBlockList, renderNode: renderNode, renderCode: renderCode };
+  return { el: el, assignUids: assignUids, renderObjects: renderObjects, renderBlockList: renderBlockList, renderNode: renderNode, renderCode: renderCode };
 });

@@ -1790,7 +1790,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: 全部前端模块。
 - Produces: 完整可用的编辑器 UI（打包功能除外）。
 
-- [ ] **Step 1: 顶栏控件**——`index.html` header 增加：
+- [x] **Step 1: 顶栏控件**——`index.html` header 增加：
 
 ```html
 <select id="example-select"><option value="">载入示例…</option></select>
@@ -1799,7 +1799,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 <input id="import-file" type="file" accept=".json" class="hidden">
 ```
 
-- [ ] **Step 2: app.js 接线**
+- [x] **Step 2: app.js 接线**
 
 ```js
 // 示例菜单（init 时填充）
@@ -1843,21 +1843,21 @@ document.getElementById("import-file").onchange = function () {
 };
 ```
 
-- [ ] **Step 3: 悬停联动（加分项，先做最简版）**——代码生成时记录每个块的起止行（`Codegen.generate` 增加可选的 `opts.trace`，返回 `{code, linesByUid}`；不改默认行为）；render 时块元素 `onmouseenter` → 给对应代码行加 `.code-hl` 背景 class，mouseleave 移除。若 30 分钟内搞不定就放弃此项（不阻塞 M3），在提交说明里注明。
+- [x] **Step 3: 悬停联动（加分项，先做最简版）**（已实现：codegen 增加 `opts.trace` 侧通道记录每块的代码行范围，代码面板按行 DOM 化，积木 mouseenter/leave 高亮对应行；顺带修复 **uid 分配时序 bug**——新节点需先分配 uid 再生成代码，否则刚载入示例时 trace 查不到、悬停无高亮）——代码生成时记录每个块的起止行（`Codegen.generate` 增加可选的 `opts.trace`，返回 `{code, linesByUid}`；不改默认行为）；render 时块元素 `onmouseenter` → 给对应代码行加 `.code-hl` 背景 class，mouseleave 移除。若 30 分钟内搞不定就放弃此项（不阻塞 M3），在提交说明里注明。
 
 ```css
 /* style.css 追加 */
 .code-hl { background: #fef3c7; display: inline-block; width: 100%; }
 ```
 
-- [ ] **Step 4: 浏览器手动验证 checklist**
+- [x] **Step 4: 浏览器手动验证 checklist**（2026-10-03 升级为自动化：`_selftest.html` 新增 5 项——示例菜单 4 选项/载入"舵机来回摆"成功、导出生成 blob、悬停积木高亮代码行且离开恢复——全量 **33/33 PASS**）
 
 - [ ] 载入"舵机来回摆"示例 → 覆盖确认 → 界面与代码更新
 - [ ] 导出工程 → 得到 .json 文件；刷新页面 → 载入 localStorage 版（不是刚导入的？先把工程清掉再导入刚才的 json）→ 导入成功恢复
 - [ ] 悬停某个块 → 右侧对应代码行黄色高亮（若做）
 - [ ] 全部 5 种对象类型建一遍、每个动作/条件都手工点一遍，代码面板结果符合直觉
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A && git commit -m "feat: 示例菜单/工程导入导出/代码悬停联动

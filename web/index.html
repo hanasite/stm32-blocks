@@ -9,6 +9,10 @@
 <header>
   <h1>STM32 积木工坊</h1>
   <input id="project-name" type="text" value="我的工程" title="工程名（下载的文件夹名）">
+  <select id="example-select"><option value="">载入示例…</option></select>
+  <button id="btn-export">导出工程</button>
+  <button id="btn-import">导入工程</button>
+  <input id="import-file" type="file" accept=".json" class="hidden">
   <div id="error-banner" class="hidden"></div>
   <button id="btn-download" disabled>⬇ 下载完整工程</button>
 </header>

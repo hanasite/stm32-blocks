@@ -118,7 +118,7 @@
         { id: "showhigh", label: "显示 HIGH", code: "Oled_ShowText(&{n}, \"HIGH\");" },
         { id: "showvar", label: "显示变量", param: "var", paramType: "intref",
           code: "Oled_ShowInt(&{n}, {var});" },
-        { id: "marquee", label: "跑马灯", param: "progress", paramLabel: "进度", paramType: "numref",
+        { id: "marquee", label: "跑马灯", param: "progress", paramLabel: "显示进度", paramType: "numref",
           defaultParam: 0, min: 0, max: 100,
           code: "Oled_Marquee(&{n}, {progress});   /* 跑马灯：显示进度 {progress} */" }
       ],

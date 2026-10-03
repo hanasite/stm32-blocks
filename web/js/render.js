@@ -154,6 +154,7 @@
         }
       } else if (act.paramType === "numref") {
         /* 数值或变量二选一：先选「固定数值」或某个整数对象 */
+        root.appendChild(el("span", null, " " + (act.paramLabel || "进度") + " "));
         var ints2 = project.objects.filter(function (o) { return o.type === "int"; });
         if (node.varId && !ints2.some(function (o) { return o.id === node.varId; })) { delete node.varId; }
         var modeOpts = [{ v: "", label: "固定数值" }].concat(ints2.map(function (o) { return { v: o.id, label: o.name }; }));
@@ -186,6 +187,7 @@
           (opts.quick || opts.rerender || noop)();
         };
         root.appendChild(num);
+        if (act.paramLabel) { root.appendChild(el("span", null, " " + act.paramLabel)); }
       }
     }
     return root;

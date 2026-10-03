@@ -15,6 +15,7 @@ static void dly(void)
 static void scl_write(uint8_t v) { HAL_GPIO_WritePin(scl_port, scl_pin, v ? GPIO_PIN_SET : GPIO_PIN_RESET); }
 static void sda_write(uint8_t v) { HAL_GPIO_WritePin(sda_port, sda_pin, v ? GPIO_PIN_SET : GPIO_PIN_RESET); }
 static uint8_t sda_read(void) { return HAL_GPIO_ReadPin(sda_port, sda_pin) == GPIO_PIN_SET ? 1 : 0; }
+static uint8_t scl_read(void) { return HAL_GPIO_ReadPin(scl_port, scl_pin) == GPIO_PIN_SET ? 1 : 0; }
 
 static void i2c_start(void)
 {
@@ -151,6 +152,18 @@ static uint8_t buf[8][128];
 
 uint8_t Oled_Ok(void) { return oled_ok; }
 
+/* 释放两根线后读实际电平：bit1=SDA, bit0=SCL。
+   3 = 模块上拉电阻在拉高（模块通电、线接对）；
+   否则模块可能没供电 / 没上拉 / 线没接上。 */
+uint8_t Oled_LineStates(void)
+{
+    if (scl_port == 0) { return 0; }
+    scl_write(1);
+    sda_write(1);
+    HAL_Delay(2);
+    return (uint8_t)((sda_read() << 1) | scl_read());
+}
+
 void Oled_Clear(void)
 {
     memset(buf, 0, sizeof(buf));
@@ -180,7 +193,7 @@ void Oled_Refresh(void)
     for (uint8_t page = 0; page < 8; page++)
     {
         ssd_cmd((uint8_t)(0xB0 | page));
-        ssd_cmd(0x00);
+        ssd_cmd(0x02);    /* 起始列 2：兼容 SH1106 的 132 列偏移，SSD1306 上仅左移 2px */
         ssd_cmd(0x10);
         ssd_data(buf[page], 128);
     }
@@ -203,7 +216,8 @@ uint8_t Oled_Init(void)
         0xA8, 0x3F,       /* multiplex 64 */
         0xD3, 0x00,       /* display offset */
         0x40,             /* start line 0 */
-        0x8D, 0x14,       /* charge pump on */
+        0x8D, 0x14,       /* charge pump on (SSD1306) */
+        0xAD, 0x8B,       /* DC-DC on (SH1106 clones; SSD1306 ignores) */
         0x20, 0x00,       /* page addressing */
         0xA1,             /* seg remap */
         0xC8,             /* com scan dec */

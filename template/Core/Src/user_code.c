@@ -1,4 +1,4 @@
-/* user_code.c — M1 诊断版 v3：OLED 仪表盘（诊断完成后由冒烟版/生成器覆盖） */
+/* user_code.c — M1 诊断版 v4：OLED 仪表盘 + OLED 失败时 LED 报错码（由冒烟版/生成器最终覆盖） */
 #include "user_app.h"
 #include "bsp_ssd1306.h"
 
@@ -36,12 +36,41 @@ void user_loop(void)
     uint8_t pressed = Key_IsPressed(&key1);
 
     if (pressed) {
-        Led_On(&led1);
         Buzzer_On(&buzzer1);
         Servo_Write(&servo1, 90);
     } else {
         Buzzer_Off(&buzzer1);
         Servo_Write(&servo1, 0);
+    }
+
+    if (!Oled_Ok()) {
+        /* 屏没认出来：每 2 秒重试一次（接触不良可自愈）；
+           同时用 LED 闪"报错码"：
+             闪 2 下 = I2C 两线都被上拉拉高（模块通电、接线存在）→ 是协议/型号问题
+             闪 3 下 = 两线没有被拉高（模块没供电 / 没上拉 / 线没通）→ 是电气问题 */
+        static uint32_t last_try = 0;
+        uint32_t now = HAL_GetTick();
+        if (now - last_try > 2000U) {
+            last_try = now;
+            Oled_Init();
+        }
+        if (!Oled_Ok()) {
+            uint8_t n = (Oled_LineStates() == 3U) ? 2U : 3U;
+            for (uint8_t i = 0; i < n; i++) {
+                Led_On(&led1);
+                Delay_ms(120);
+                Led_Off(&led1);
+                Delay_ms(200);
+            }
+            Delay_ms(1000);
+            return;
+        }
+    }
+
+    if (pressed) {
+        Led_On(&led1);
+    } else {
+        Led_Toggle(&led1);   /* 心跳：屏在刷 + 板载 LED 在闪 = 程序活着 */
     }
 
     Oled_Clear();
@@ -57,12 +86,9 @@ void user_loop(void)
     line[0] = 'T'; line[1] = '=';
     put_u32(&line[2], HAL_GetTick() / 1000U, 6);
     Oled_Text(2, line);
-    /* 第 3 行：按压状态 / OLED 探测结果 */
-    Oled_Text(3, pressed ? "KEY PRESSED" : (Oled_Ok() ? "KEY IDLE" : "OLED FAIL"));
+    /* 第 3 行：按压状态 */
+    Oled_Text(3, pressed ? "KEY PRESSED" : "KEY IDLE");
     Oled_Refresh();
 
-    if (!pressed) {
-        Led_Toggle(&led1);   /* 心跳：屏在刷 + 板载 LED 在闪 = 程序活着 */
-    }
     Delay_ms(250);
 }

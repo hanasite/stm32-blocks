@@ -8,6 +8,7 @@
 
 uint8_t Oled_Init(void);                        /* 1 = found & initialized */
 uint8_t Oled_Ok(void);
+uint8_t Oled_LineStates(void);                  /* bit1=SDA bit0=SCL 实际电平 */
 void Oled_Clear(void);
 void Oled_Text(uint8_t line, const char *s);    /* line 0-7, ASCII (upper) */
 void Oled_Refresh(void);

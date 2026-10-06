@@ -108,4 +108,4 @@ docs/       设计文档、部署指南、实施计划与踩坑记录
 
 ## License
 
-MIT
+本项目代码采用 MIT 许可证（见 [LICENSE](LICENSE)）；`template/Drivers/` 下为 ST 官方 HAL/CMSIS 源码，遵循其自带 BSD-3 许可证（见 `template/Drivers/LICENSE.md`）。

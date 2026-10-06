@@ -63,13 +63,13 @@ Model.condCompare(objectId, op, value)         // -> {kind:"compare", objectId, 
 Model.serialize(project) / Model.deserialize(str)  // JSON 往返；deserialize 校验 version===1
 ```
 
-- [ ] **Step 1: 环境检查**
+- [x] **Step 1: 环境检查**（node v24.14.1）
 
 ```bash
 node --version   # 期望 v18 或更高；更低就先装 Node LTS
 ```
 
-- [ ] **Step 2: 写失败测试 `tests/model.test.js`（全文）**
+- [x] **Step 2: 写失败测试 `tests/model.test.js`（全文）**
 
 ```js
 const test = require("node:test");
@@ -145,12 +145,12 @@ test("序列化往返", () => {
 });
 ```
 
-- [ ] **Step 3: 跑测试看失败**
+- [x] **Step 3: 跑测试看失败**（注意：Node 24 下用 `node --test` 不带路径自动发现测试文件；`node --test tests/` 会被当成模块报错）
 
 Run: `node --test tests/`
 Expected: FAIL（`Cannot find module '../web/js/model.js'`）
 
-- [ ] **Step 4: 实现 `web/js/model.js`（全文）**
+- [x] **Step 4: 实现 `web/js/model.js`（全文）**
 
 ```js
 (function (root, factory) {
@@ -290,12 +290,12 @@ Expected: FAIL（`Cannot find module '../web/js/model.js'`）
 });
 ```
 
-- [ ] **Step 5: 跑测试到全绿**
+- [x] **Step 5: 跑测试到全绿**（2026-10-03：`node --test` PASS ×6）
 
 Run: `node --test tests/`
 Expected: PASS ×6
 
-- [ ] **Step 6: 写占位 `web/index.html`**（后面任务填充，先保证骨架在）
+- [x] **Step 6: 写占位 `web/index.html`**（后面任务填充，先保证骨架在）
 
 ```html
 <!DOCTYPE html>
@@ -310,7 +310,7 @@ Expected: PASS ×6
 </html>
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add web tests && git commit -m "feat: 前端骨架与工程数据模型 model.js（含 Node 测试）
@@ -341,7 +341,7 @@ Catalog.gpioPinMacroOf(pin)  // "PA1" -> "GPIO_PIN_1"
 Catalog.pinOfObject(obj)     // 对象（key/led/buzzer 用 params.pin；servo 用通道映射）-> 引脚字符串 | null
 ```
 
-- [ ] **Step 1: 写失败测试 `tests/catalog.test.js`（全文）**
+- [x] **Step 1: 写失败测试 `tests/catalog.test.js`（全文）**
 
 ```js
 const test = require("node:test");
@@ -388,9 +388,9 @@ test("每种类型都有 declare/initCode/comment，动作带中文标签", () =
 });
 ```
 
-- [ ] **Step 2: 跑测试看失败** → Run: `node --test tests/catalog.test.js`，Expected: FAIL（模块不存在）
+- [x] **Step 2: 跑测试看失败**（与实现同批写入后一次跑绿，未单独红跑，记录备案）
 
-- [ ] **Step 3: 实现 `web/js/catalog.js`（全文）**
+- [x] **Step 3: 实现 `web/js/catalog.js`（全文）**
 
 ```js
 (function (root, factory) {
@@ -498,7 +498,7 @@ test("每种类型都有 declare/initCode/comment，动作带中文标签", () =
         { id: "eq", label: "=", op: "=" }, { id: "le", label: "≤", op: "<=" },
         { id: "lt", label: "<", op: "<" }
       ],
-      initCode: "{n} = {init};",
+      initCode: "{n} = {init}",
       comment: "整数({init})"
     }
   };
@@ -541,9 +541,9 @@ test("每种类型都有 declare/initCode/comment，动作带中文标签", () =
 });
 ```
 
-- [ ] **Step 4: 跑测试到全绿** → `node --test tests/catalog.test.js`，Expected: PASS ×4
+- [x] **Step 4: 跑测试到全绿**（2026-10-03：全量 `node --test` PASS ×10）
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web/js/catalog.js tests/catalog.test.js && git commit -m "feat: 积木目录 catalog.js（引脚表/舵机通道表/五种对象定义）
@@ -567,7 +567,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 Validate.check(project) // -> { errors: [ {code:"PIN_CONFLICT"|"BAD_NAME"|"DUP_NAME", message:"中文说明", objectIds:[...]} ] }
 ```
 
-- [ ] **Step 1: 写失败测试 `tests/validate.test.js`（全文）**
+- [x] **Step 1: 写失败测试 `tests/validate.test.js`（全文）**
 
 ```js
 const test = require("node:test");
@@ -613,9 +613,9 @@ test("名字非法与重名报错", () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试看失败** → `node --test tests/validate.test.js`，Expected: FAIL
+- [x] **Step 2: 跑测试看失败** → `node --test tests/validate.test.js`，Expected: FAIL（测试先行抓出计划自带 bug：DUP_NAME 检测挂 else-if 上，非法名字时漏报）
 
-- [ ] **Step 3: 实现 `web/js/validate.js`（全文）**
+- [x] **Step 3: 实现 `web/js/validate.js`（全文）**（DUP 检测改为独立 if，已同步上方清单）
 
 ```js
 (function (root, factory) {
@@ -637,7 +637,8 @@ test("名字非法与重名报错", () => {
     project.objects.forEach(function (o) {
       if (!NAME_RE.test(o.name)) {
         errors.push({ code: "BAD_NAME", message: "对象名 \"" + o.name + "\" 只能用字母/数字/下划线，字母开头", objectIds: [o.id] });
-      } else if (seen[o.name]) {
+      }
+      if (seen[o.name]) {
         errors.push({ code: "DUP_NAME", message: "对象名重复：" + o.name, objectIds: [seen[o.name], o.id] });
       } else {
         seen[o.name] = o.id;
@@ -669,9 +670,9 @@ test("名字非法与重名报错", () => {
 });
 ```
 
-- [ ] **Step 4: 跑测试到全绿** → `node --test tests/validate.test.js`，Expected: PASS ×4
+- [x] **Step 4: 跑测试到全绿**（2026-10-03：全量 `node --test` PASS ×14）
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web/js/validate.js tests/validate.test.js && git commit -m "feat: 校验模块 validate.js（引脚冲突/名字规则）
@@ -695,7 +696,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 Codegen.generate(project) // -> string（完整 user_code.c 内容，UTF-8，末尾带换行）
 ```
 
-- [ ] **Step 1: 写失败测试 `tests/codegen.test.js`（全文，golden 样例与设计文档 §5.3 逐字符一致）**
+- [x] **Step 1: 写失败测试 `tests/codegen.test.js`（全文，golden 样例与设计文档 §5.3 逐字符一致）**
 
 ```js
 const test = require("node:test");
@@ -792,9 +793,9 @@ test("空主循环生成空 user_loop", () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试看失败** → `node --test tests/codegen.test.js`，Expected: FAIL
+- [x] **Step 2: 跑测试看失败** → `node --test tests/codegen.test.js`，Expected: FAIL（首跑抓到一处不一致：整数 initCode 模板自带分号+生成器补分号 → `count = 0;;`）
 
-- [ ] **Step 3: 实现 `web/js/codegen.js`（全文）**
+- [x] **Step 3: 实现 `web/js/codegen.js`（全文）**
 
 ```js
 (function (root, factory) {
@@ -912,11 +913,11 @@ test("空主循环生成空 user_loop", () => {
 });
 ```
 
-- [ ] **Step 4: 跑测试到全绿** → `node --test tests/codegen.test.js`，Expected: PASS ×4（golden 必须先绿，格式一字都不能差）
+- [x] **Step 4: 跑测试到全绿**（2026-10-03：统一整数 initCode 不带分号后、golden 逐字符一致；全量 PASS ×18）
 
-- [ ] **Step 5: 跑全量测试回归** → `node --test tests/`，Expected: 全绿
+- [x] **Step 5: 跑全量测试回归**（`node --test` PASS ×18）
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add web/js/codegen.js tests/codegen.test.js && git commit -m "feat: 代码生成 codegen.js，golden 测试锁定 §5.3 格式
@@ -941,7 +942,7 @@ Examples.list()      // -> [{id:"blink", label:"按键点灯"}, {id:"combo", lab
 Examples.load(id)    // -> 全新 project 对象（深拷贝）
 ```
 
-- [ ] **Step 1: 写失败测试 `tests/examples.test.js`（全文）**
+- [x] **Step 1: 写失败测试 `tests/examples.test.js`（全文）**
 
 ```js
 const test = require("node:test");
@@ -974,9 +975,9 @@ test("load 返回深拷贝（改不坏模板）", () => {
 });
 ```
 
-- [ ] **Step 2: 跑测试看失败** → `node --test tests/examples.test.js`，Expected: FAIL
+- [x] **Step 2: 跑测试看失败** → `node --test tests/examples.test.js`，Expected: FAIL（与实现同批写入一次跑绿）
 
-- [ ] **Step 3: 实现 `web/js/examples.js`（全文）**
+- [x] **Step 3: 实现 `web/js/examples.js`（全文）**（组合技示例蜂鸣器改为 active:"high" 对齐现场物资）
 
 ```js
 (function (root, factory) {
@@ -1002,7 +1003,7 @@ test("load 返回深拷贝（改不坏模板）", () => {
     var p = Model.newProject("按键组合技");
     var key = Object.assign(Model.addObject(p, "key", { pin: "PA1", pull: "up" }), { id: "o1", name: "key1" });
     var led = Object.assign(Model.addObject(p, "led", { pin: "PC13", active: "low" }), { id: "o2", name: "led1" });
-    var buz = Object.assign(Model.addObject(p, "buzzer", { pin: "PB1", active: "low" }), { id: "o3", name: "buzzer1" });
+    var buz = Object.assign(Model.addObject(p, "buzzer", { pin: "PB1", active: "high" }), { id: "o3", name: "buzzer1" });
     var srv = Object.assign(Model.addObject(p, "servo", { channel: "TIM2_CH1" }), { id: "o4", name: "servo1" });
     var cnt = Object.assign(Model.addObject(p, "int", { init: 0 }), { id: "o5", name: "count1" });
     p.loop.push(Model.nodeIf(Model.condState(key.id, "pressed"), [
@@ -1046,9 +1047,9 @@ test("load 返回深拷贝（改不坏模板）", () => {
 });
 ```
 
-- [ ] **Step 4: 跑测试到全绿** → `node --test tests/examples.test.js`，Expected: PASS ×3
+- [x] **Step 4: 跑测试到全绿**（2026-10-03：全量 `node --test` PASS ×21）
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add web/js/examples.js tests/examples.test.js && git commit -m "feat: 三个内置示例 examples.js
@@ -1075,7 +1076,7 @@ App.init()                                              // 装配一切（index.
 App.refresh()                                           // 变更后统一刷新：validate→横幅、codegen→代码面板、localStorage 保存
 ```
 
-- [ ] **Step 1: 写 `web/index.html`（全文）**
+- [x] **Step 1: 写 `web/index.html`（全文）**
 
 ```html
 <!DOCTYPE html>
@@ -1144,7 +1145,7 @@ App.refresh()                                           // 变更后统一刷新
 
 （`js/dragdrop.js`、`js/packer.js`、`js/template-data.js` 在后续任务写完后再往这里加 `<script>`。）
 
-- [ ] **Step 2: 写 `web/css/style.css`（全文）**
+- [x] **Step 2: 写 `web/css/style.css`（全文）**
 
 ```css
 * { box-sizing: border-box; }
@@ -1185,7 +1186,7 @@ dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
 #dlg-hint { color: #b42318; }
 ```
 
-- [ ] **Step 3: 写 `web/js/render.js`（全文；本任务先实现 objects/blocks/code 渲染，拖拽 opt 先摆好接口）**
+- [x] **Step 3: 写 `web/js/render.js`（全文；本任务先实现 objects/blocks/code 渲染，拖拽 opt 先摆好接口）**
 
 ```js
 (function (root, factory) {
@@ -1282,7 +1283,7 @@ dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
 });
 ```
 
-- [ ] **Step 4: 写 `web/js/objects.js`（全文；新建/编辑弹窗）**
+- [x] **Step 4: 写 `web/js/objects.js`（全文；新建/编辑弹窗）**
 
 ```js
 (function (root, factory) {
@@ -1388,7 +1389,7 @@ dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
 });
 ```
 
-- [ ] **Step 5: 写 `web/js/app.js`（全文；本任务先接对象区+代码面板+横幅+自动保存）**
+- [x] **Step 5: 写 `web/js/app.js`（全文；本任务先接对象区+代码面板+横幅+自动保存）**
 
 ```js
 (function () {
@@ -1457,7 +1458,7 @@ dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
 })();
 ```
 
-- [ ] **Step 6: 浏览器手动验证（file:// 双击 `web/index.html`）**
+- [x] **Step 6: 浏览器手动验证（file:// 双击 `web/index.html`）** —— 2026-10-03 升级为**自动化自检**：新增 `web/_selftest.html`（真实浏览器模拟点击序列），用 Edge 无头 `--dump-dom` 跑，**15/15 PASS**（含清单全部条目 + 重名拦截/连带删除/localStorage/冲突联动扩展项）；该页留作永久回归工具，命令：`msedge --headless=new --virtual-time-budget=12000 --dump-dom file:///…/web/_selftest.html | grep SELFTEST`
 
 Checklist（逐条肉眼确认，有问题就修）：
 - [ ] 打开后自动载入"按键点灯"示例：左侧显示 key1/led1 两张对象卡，右侧代码面板出现完整 C 代码且有关键字高亮
@@ -1468,7 +1469,7 @@ Checklist（逐条肉眼确认，有问题就修）：
 - [ ] 刷新浏览器 → 刚才的修改还在（localStorage）
 - [ ] 代码面板「复制代码」按钮把代码复制进剪贴板
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add web && git commit -m "feat: 三栏界面骨架/对象区/代码面板/校验横幅/自动保存
@@ -1499,13 +1500,13 @@ DragDrop.init({
 });
 ```
 
-- [ ] **Step 1: 渲染层改造（render.js）**——每个语句块元素：`el.dataset.nodeId = <节点在树中的唯一 id>`。
+- [x] **Step 1: 渲染层改造（render.js）**——每个语句块元素：`el.dataset.nodeId = <节点在树中的唯一 id>`。
 
 节点唯一 id 方案：渲染时给每个节点动态挂 `node.__uid`（纯 UI 属性，序列化前由 Model.serialize 用 replacer 剥掉 `__uid`——在 model.js 的 serialize 里加 `JSON.stringify(project, function (k, v) { return k === "__uid" ? undefined : v; })`，并补一条测试："serialize 不包含 __uid"）。
 
 `renderBlockList(container, nodes, project, opts)` 里给每个节点分配 uid（`"n" + (++render._seq)`），`renderNode` 输出的根元素 `dataset.nodeId`；if 块的三段容器分别 `data-drop-list` 且挂 `dataset.ownerUid` + `dataset.listKind`（"then"/"else"）；主循环容器 `#loop-slot` 已有 `data-drop-list="loop"`。
 
-- [ ] **Step 2: 写 `web/js/dragdrop.js`（全文）**
+- [x] **Step 2: 写 `web/js/dragdrop.js`（全文）**
 
 ```js
 (function (root) {
@@ -1605,7 +1606,7 @@ DragDrop.init({
 })(typeof self !== "undefined" ? self : this);
 ```
 
-- [ ] **Step 2b: `web/css/style.css` 追加拖拽相关样式**
+- [x] **Step 2b: `web/css/style.css` 追加拖拽相关样式**（另修：`#loop-slot { min-height: 240px }`——空画布高度 0 会接不住拖拽，产品级修复）
 
 ```css
 /* T7 拖拽 */
@@ -1624,7 +1625,7 @@ DragDrop.init({
 .trash-hot { transform: scale(1.15); background: #fecaca !important; }
 ```
 
-- [ ] **Step 3: app.js 接入**——`App` 增加：
+- [x] **Step 3: app.js 接入**——`App` 增加：
 
 ```js
 DragDrop.init({
@@ -1660,7 +1661,7 @@ DragDrop.init({
 - App 侧 `dropIndexAt(info, list)`：遍历 list 中各块 DOM（`[data-node-id="<uid>"]`）的 `getBoundingClientRect().top + height/2` 与 `info.y` 比较，得出插入位
 - App 侧 `makePaletteNode(type, project)`：`"action"` → 第一个"有动作对象"的第一个动作；`"delay"` → `Model.nodeDelay(100)`；`"if"` → 首个按键对象的 `condState(pressed)`（没有按键则首个整数对象的 `condCompare(>=, 1)`）
 
-- [ ] **Step 4: 浏览器手动验证 checklist**
+- [x] **Step 4: 浏览器手动验证 checklist**（2026-10-03 升级为自动化：`_selftest.html` 扩展 6 项**合成指针事件拖拽仿真**——palette 拖出/追加、正向嵌套、自嵌套拒绝、垃圾桶整体删除——连同原有 15 项共 **21/21 PASS**；命令加 `--window-size=1600,900`（默认窗口太小会把中栏挤没））
 
 - [ ] 从积木盒拖「延时」到主循环 → 松手出现"延时 100 毫秒"块（默认 100，可后续改）
 - [ ] 拖「如果」到主循环 → 出现 C 形块，条件下拉可选中 key1 被按下
@@ -1670,9 +1671,11 @@ DragDrop.init({
 - [ ] 拖到空白处松手 → 回弹（画面不变化但重渲染一次）
 - [ ] 把"如果"块拖到它自己肚子上 → 不生效（moveNode 拒绝）
 
-- [ ] **Step 5: 跑全量单测** → `node --test tests/`，Expected: 全绿（新增的 __uid 剥离、deleteNodeByUid 测试也过）
+- [x] **Step 5: 跑全量单测**（2026-10-03：`node --test` PASS ×24）
 
-- [ ] **Step 6: Commit**
+**执行记录（2026-10-03，自动化验证抓出的两个真 bug）**：① 空 `#loop-slot` 高度为 0 → 空画布接不住拖拽（CSS min-height 修复；dragdrop 同时加了"落在画布空白区域视同主循环"的宽容逻辑）；② `Model.addObject` 生成 ID 用"数组长度+1"，**删除对象后新建会 ID 撞车** → `findObject` 取错对象 → 条件代码生成崩溃（改为扫描现有最大编号 +1，已补回归单测）。两个 bug 都由无头浏览器仿真在真实操作序列中抓出。
+
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A && git commit -m "feat: 自研拖拽内核（拖出/吸附/重排/垃圾桶）与模型移动操作
@@ -1692,7 +1695,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `Catalog`（params/actions/states/conditions）、Model。
 - Produces: 动作块 = `[对象▾][动作▾](参数框)`；延时块 = `延时 [数字] 毫秒`；如果块 = `如果 [条件编辑] 则 {…} 否则 {…}`。
 
-- [ ] **Step 1: 动作块控件化（render.js）**
+- [x] **Step 1: 动作块控件化（render.js）**
 
 动作块结构（`renderNode` 的 action 分支重写）：
 
@@ -1746,7 +1749,7 @@ function actionBlock(node, project, ops) {
 
 延时块：`延时 [input number] 毫秒`，oninput → `node.ms = Number(this.value)` + ops.change()（空值按 0 处理）。
 
-- [ ] **Step 2: 如果块条件编辑器（render.js）**
+- [x] **Step 2: 如果块条件编辑器（render.js）**（另加 ＋否则 按钮；存在性用 UI 标志 `__elseOn`，序列化时与 `__uid` 一起剥离）
 
 条件编辑：`[对象▾]`（列"按键"或"整数"对象）→ 之后分两种控件：
 - 选中按键对象：`[被按下|被松开▾]` → `node.cond = Model.condState(id, state)`
@@ -1754,9 +1757,9 @@ function actionBlock(node, project, ops) {
 
 否则段：若 `node.else.length === 0` 显示一个"＋否则"小按钮（点击后 else 出现空段）；已有 else 时显示"否则"标题与空容器即可。
 
-- [ ] **Step 3: 拖拽兼容**——`onDown` 里已经排除 `select/input/button` 上开始的拖动（Task 7 已做）；本任务确认下拉在拖动幽灵里不产生报错。
+- [x] **Step 3: 拖拽兼容**——`onDown` 里已经排除 `select/input/button` 上开始的拖动（Task 7 已做）；本任务确认下拉在拖动幽灵里不产生报错。
 
-- [ ] **Step 4: 浏览器手动验证 checklist**
+- [x] **Step 4: 浏览器手动验证 checklist**（2026-10-03 升级为自动化：`_selftest.html` 新增 8 项就地编辑仿真（延时数字框实时改 → 代码 `Delay_ms(250)`、动作块双下拉切对象 → `Buzzer_`、条件切整数比较 → `if (count1 >= 5)`、＋否则按钮），全量 **29/29 PASS**）
 
 - [ ] 动作块切对象（led1→buzzer1）→ 动作下拉自动变"响/停/翻转"，代码同步 `Buzzer_*`
 - [ ] 舵机动作出现角度输入框，改成 45 → 代码出现 `Servo_Write(&servo1, 45)`
@@ -1765,9 +1768,9 @@ function actionBlock(node, project, ops) {
 - [ ] 整数条件选 `≥` 填 5 → 代码 `if (count1 >= 5) {`
 - [ ] 空 else 显示"＋否则"，点击后出现否则段，可往里拖块
 
-- [ ] **Step 5: 跑全量单测回归** → `node --test tests/`，Expected: 全绿
+- [x] **Step 5: 跑全量单测回归**（`node --test` PASS ×24；另注：拖「如果/动作」时无可用对象会弹 toast 提示，此前为静默不生成——顺手补的 UX）
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add -A && git commit -m "feat: 积木内下拉编辑（对象/动作/条件/参数就地编辑）
@@ -1787,7 +1790,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: 全部前端模块。
 - Produces: 完整可用的编辑器 UI（打包功能除外）。
 
-- [ ] **Step 1: 顶栏控件**——`index.html` header 增加：
+- [x] **Step 1: 顶栏控件**——`index.html` header 增加：
 
 ```html
 <select id="example-select"><option value="">载入示例…</option></select>
@@ -1796,7 +1799,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 <input id="import-file" type="file" accept=".json" class="hidden">
 ```
 
-- [ ] **Step 2: app.js 接线**
+- [x] **Step 2: app.js 接线**
 
 ```js
 // 示例菜单（init 时填充）
@@ -1840,21 +1843,21 @@ document.getElementById("import-file").onchange = function () {
 };
 ```
 
-- [ ] **Step 3: 悬停联动（加分项，先做最简版）**——代码生成时记录每个块的起止行（`Codegen.generate` 增加可选的 `opts.trace`，返回 `{code, linesByUid}`；不改默认行为）；render 时块元素 `onmouseenter` → 给对应代码行加 `.code-hl` 背景 class，mouseleave 移除。若 30 分钟内搞不定就放弃此项（不阻塞 M3），在提交说明里注明。
+- [x] **Step 3: 悬停联动（加分项，先做最简版）**（已实现：codegen 增加 `opts.trace` 侧通道记录每块的代码行范围，代码面板按行 DOM 化，积木 mouseenter/leave 高亮对应行；顺带修复 **uid 分配时序 bug**——新节点需先分配 uid 再生成代码，否则刚载入示例时 trace 查不到、悬停无高亮）——代码生成时记录每个块的起止行（`Codegen.generate` 增加可选的 `opts.trace`，返回 `{code, linesByUid}`；不改默认行为）；render 时块元素 `onmouseenter` → 给对应代码行加 `.code-hl` 背景 class，mouseleave 移除。若 30 分钟内搞不定就放弃此项（不阻塞 M3），在提交说明里注明。
 
 ```css
 /* style.css 追加 */
 .code-hl { background: #fef3c7; display: inline-block; width: 100%; }
 ```
 
-- [ ] **Step 4: 浏览器手动验证 checklist**
+- [x] **Step 4: 浏览器手动验证 checklist**（2026-10-03 升级为自动化：`_selftest.html` 新增 5 项——示例菜单 4 选项/载入"舵机来回摆"成功、导出生成 blob、悬停积木高亮代码行且离开恢复——全量 **33/33 PASS**）
 
 - [ ] 载入"舵机来回摆"示例 → 覆盖确认 → 界面与代码更新
 - [ ] 导出工程 → 得到 .json 文件；刷新页面 → 载入 localStorage 版（不是刚导入的？先把工程清掉再导入刚才的 json）→ 导入成功恢复
 - [ ] 悬停某个块 → 右侧对应代码行黄色高亮（若做）
 - [ ] 全部 5 种对象类型建一遍、每个动作/条件都手工点一遍，代码面板结果符合直觉
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A && git commit -m "feat: 示例菜单/工程导入导出/代码悬停联动
@@ -1881,7 +1884,7 @@ Packer.buildProjectZip(project, templateBase64, projectName)
   // -> Promise<Uint8Array>；根目录改名 projectName；Core/Src/user_code.c 换成生成代码
 ```
 
-- [ ] **Step 1: vendor JSZip**
+- [x] **Step 1: vendor JSZip**
 
 ```bash
 cd "F:/kakuns开源项目/stm32-blocks"
@@ -1892,7 +1895,7 @@ curl -L -o web/vendor/jszip.min.js https://cdn.jsdelivr.net/npm/jszip@3.10.1/dis
 head -c 200 web/vendor/jszip.min.js   # 期望看到 /*! JSZip v3.10.1 之类字样，不是 HTML 错误页
 ```
 
-- [ ] **Step 2: 写失败测试 `tests/packer.test.js`（全文）**
+- [x] **Step 2: 写失败测试 `tests/packer.test.js`（全文）**
 
 ```js
 const test = require("node:test");
@@ -1927,9 +1930,9 @@ test("打包：根目录改名 + user_code.c 替换为生成代码，其余文�
 });
 ```
 
-- [ ] **Step 3: 跑测试看失败** → `node --test tests/packer.test.js`，Expected: FAIL
+- [x] **Step 3: 跑测试看失败** → `node --test tests/packer.test.js`，Expected: FAIL
 
-- [ ] **Step 4: 实现 `web/js/packer.js`（全文）**
+- [x] **Step 4: 实现 `web/js/packer.js`（全文）**
 
 ```js
 (function (root, factory) {
@@ -1976,8 +1979,8 @@ test("打包：根目录改名 + user_code.c 替换为生成代码，其余文�
 });
 ```
 
-- [ ] **Step 5: 跑测试到全绿** → `node --test tests/packer.test.js`，Expected: PASS
-- [ ] **Step 6: app.js 下载按钮接真逻辑**（TEMPLATE_ZIP 还没内嵌时按钮临时 alert "模板未内嵌，先跑 tools/embed-template.js"）：
+- [x] **Step 5: 跑测试到全绿** → `node --test tests/packer.test.js`，Expected: PASS
+- [x] **Step 6: app.js 下载按钮接真逻辑**（TEMPLATE_ZIP 还没内嵌时按钮临时 alert "模板未内嵌，先跑 tools/embed-template.js"）：
 
 ```js
 document.getElementById("btn-download").onclick = function () {
@@ -1993,13 +1996,15 @@ document.getElementById("btn-download").onclick = function () {
 };
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add web/js/packer.js web/vendor tests/packer.test.js web/js/app.js web/index.html && git commit -m "feat: 打包器 packer.js（内嵌模板 → 替换生成代码 → 下载 zip）
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
+
+**执行记录（2026-10-03 深夜续）**：JSZip 3.10.1 从 jsdelivr 一次下载成功（97,630 字节，文件头为 `/*! JSZip v3.10.1`）；`packer.js` 与测试均按计划原文落地，首次运行 25/25 全绿。执行中的两处小偏差：① 下载按钮 `.then` 后补了 `.catch(alert("打包失败："+err.message))`——避免打包异常在招新现场静默无反馈；② `_selftest.html` 也加了 `packer.js` 的 script 标签（与 index.html 保持一致，后续无头端到端要用）。
 
 ---
 
@@ -2014,7 +2019,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `template/`（M1 产物）、JSZip（node require `../web/vendor/jszip.min.js`）。
 - Produces: `window.TEMPLATE_ZIP`（base64 字符串）。
 
-- [ ] **Step 1: 实现 `tools/embed-template.js`（全文）**
+- [x] **Step 1: 实现 `tools/embed-template.js`（全文）**
 
 ```js
 #!/usr/bin/env node
@@ -2059,22 +2064,24 @@ async function main() {
 main();
 ```
 
-- [ ] **Step 2: 运行并验证**
+- [x] **Step 2: 运行并验证**
 
 ```bash
 node tools/embed-template.js   # 期望：内嵌 xx 个文件，大小 0.5-2 MB 量级
 node -e "global.window={}; require('F:/kakuns开源项目/stm32-blocks/web/js/template-data.js'); console.log(typeof window.TEMPLATE_ZIP, window.TEMPLATE_ZIP.length)"   # 期望 string + 长度 >100000
 ```
 
-- [ ] **Step 3: 浏览器端到端验证**——`web/index.html` 加 `<script src="js/template-data.js">` 后双击打开；随便拼一个程序 → 点「下载完整工程」→ 得到 `<工程名>.zip`；解压 → VSCode 打开 → F5 → 板子按积木逻辑动（**这是 M3 的核心验收**）。
+- [x] **Step 3: 浏览器端到端验证**——`web/index.html` 加 `<script src="js/template-data.js">` 后双击打开；随便拼一个程序 → 点「下载完整工程」→ 得到 `<工程名>.zip`；解压 → VSCode 打开 → F5 → 板子按积木逻辑动（**这是 M3 的核心验收**；无头端到端已自动验证，真板 F5 留到 M3 彩排）。
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/embed-template.js web/js/template-data.js web/index.html && git commit -m "feat: 模板工程内嵌脚本，生成 template-data.js
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
+
+**执行记录**：内嵌 **72 个文件**（含 `.vscode/` 隐藏目录、`使用说明.md`、三个 .bat），`template-data.js` **0.41 MB**（base64 428,652 字符）；`build/` 已按排除表剔除。抽查 zip 清单确认关键文件全在。`_selftest.html` 加了 `template-data.js` 并在末尾新增**第 11 节异步打包端到端**（5 项：模板已内嵌 / 下载截获 Blob 339,555 字节 / 根目录改名 `舵机来回摆/` / 含 build.bat+flash.bat+.vscode / user_code.c 与代码面板逐字符一致）——Edge 无头 **38/38 PASS**（原 33 项 + 新 5 项）。**注意**：git-bash 里 `msedge` 不在 PATH（直接调用退出码 127），要用全路径 `"/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"`。
 
 ---
 
@@ -2087,7 +2094,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: `web/js/examples.js`、`web/js/codegen.js`（node require）、`template/`。
 - Produces: 一条命令验证"3 个示例生成的代码都能编译"。
 
-- [ ] **Step 1: 实现 `tools/run-example-builds.js`（全文）**
+- [x] **Step 1: 实现 `tools/run-example-builds.js`（全文）**
 
 ```js
 #!/usr/bin/env node
@@ -2136,7 +2143,7 @@ console.log(failed === 0 ? "\n3/3 通过" : `\n${failed} 个失败`);
 process.exit(failed === 0 ? 0 : 1);
 ```
 
-- [ ] **Step 2: 实现 `tools/run-example-builds.bat`（全文）**
+- [x] **Step 2: 实现 `tools/run-example-builds.bat`（全文）**
 
 ```bat
 @echo off
@@ -2145,7 +2152,7 @@ node tools\run-example-builds.js
 pause
 ```
 
-- [ ] **Step 3: 运行**
+- [x] **Step 3: 运行**
 
 ```bash
 node tools/run-example-builds.js
@@ -2153,15 +2160,17 @@ node tools/run-example-builds.js
 
 Expected: `PASS blink / PASS combo / PASS sweep` + `3/3 通过`（每个示例全新目录编译，约 10-30 秒/个）。
 
-- [ ] **Step 4: M3 总验收 checklist（真板 + 浏览器全流程）**
+**执行记录**：一次通过——`PASS blink (2.7s) / PASS combo (2.7s) / PASS sweep (2.6s)` + `3/3 通过`（实际约 2.7 秒/例，裁剪过的 HAL 很小）。相对计划原文两处加固：① `build` 排除从正则改为**按路径前缀比较**（正则版若仓库位于含 "build" 字样的目录会误伤全部文件）；② 失败时**打印编译输出末 25 行**并附每例耗时（否则 FAIL 无从排查）。另做了一次计划外加码：五类型全上工程（key/led/buzzer/servo/int 五对象 + if/else + 比较条件）生成代码在全新模板副本编译 → **ALLTYPES PASS**（临时脚本未入库）。
 
-- [ ] `node --test tests/` 全绿
-- [ ] 双击 `web/index.html` → 载入"按键组合技" → 下载 zip → VSCode 打开 → F5 → 板子上按键按下：蜂鸣器响、LED 翻转、舵机 90°、松开复位
-- [ ] 新建对象走一遍 5 种类型，每个都下载编译烧录一次（至少 servo 和 int 各来一次）
-- [ ] 制造一个引脚冲突 → 下载按钮禁灰正确
-- [ ] 断网状态下全流程可用（除了首次装 CubeCLT 之外）
+- [x] **Step 4: M3 总验收 checklist（真板 + 浏览器全流程）**（自动侧全部完成，真板 F5 留现场彩排）
 
-- [ ] **Step 5: Commit**
+- [x] `node --test tests/` 全绿（25/25）
+- [ ] 双击 `web/index.html` → 载入"按键组合技" → 下载 zip → VSCode 打开 → F5 → 板子上按键按下：蜂鸣器响、LED 翻转、舵机 90°、松开复位 —— **待现场彩排（用户操作）**
+- [x] 新建对象走一遍 5 种类型，每个都下载编译烧录一次（至少 servo 和 int 各来一次）【自动侧：对话框创建覆盖蜂鸣器/LED/舵机（含重名拦截），按键与整数走同一 catalog 代码路径 + 单测；五类型全上编译 ALLTYPES PASS；真板烧录并入彩排】
+- [x] 制造一个引脚冲突 → 下载按钮禁灰正确（自检 conflict-disable-download + 新增 dialog-servo-conflict：两个舵机同占 PA0）
+- [x] 断网状态下全流程可用（除了首次装 CubeCLT 之外）——自研文件零外部 URL（rg 为 0 命中），file:// 无头全流程 42/42 即离线证据
+
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools && git commit -m "feat: 示例编译回归脚本，3/3 通过（M3 验收门）
@@ -2169,15 +2178,17 @@ git add tools && git commit -m "feat: 示例编译回归脚本，3/3 通过（M3
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
 
+**执行记录**：`_selftest.html` 同步加了 **10.6 节**（舵机对话框创建 + 舵机间通道冲突拦截 + 删除复原，4 项），Edge 无头 **42/42 PASS**。
+
 ---
 
 ## M2+M3 完成标准（验收清单）
 
-- [ ] 浏览器双击可打开，全流程离线可用（file:// 无控制台报错）
-- [ ] 对象区 5 种类型可建/改/删（含引脚冲突拦截与占位清理提示）
-- [ ] 拖拽：积木盒拖出、堆叠吸附、嵌套进如果、重排、垃圾桶删除、非法落点回弹
-- [ ] 代码面板实时生成且与 §5.3 样例格式一致（golden 测试锁死）、语法高亮、可复制
-- [ ] 3 个示例一键载入；localStorage 自动保存；工程导入导出
-- [ ] 下载 zip = 完整可编译工程（含 .vscode/脚本/说明），改名正确
-- [ ] `node --test tests/` 全绿；`node tools/run-example-builds.js` 3/3
-- [ ] 现场流程演练：拼积木 → 下载 → VSCode F5 → 板子动，≤ 2 分钟走完
+- [x] 浏览器双击可打开，全流程离线可用（file:// 无控制台报错）——无头等价验证零 PAGEERR，自研文件零外部 URL
+- [x] 对象区 5 种类型可建/改/删（含引脚冲突拦截与占位清理提示）——自检覆盖：建/改/删、重名拦截、GPIO 冲突、舵机通道冲突
+- [x] 拖拽：积木盒拖出、堆叠吸附、嵌套进如果、重排、垃圾桶删除、非法落点回弹——自检拖拽套件（合成 PointerEvent）全覆盖
+- [x] 代码面板实时生成且与 §5.3 样例格式一致（golden 测试锁死）、语法高亮、可复制
+- [x] 3 个示例一键载入；localStorage 自动保存；工程导入导出
+- [x] 下载 zip = 完整可编译工程（含 .vscode/脚本/说明），改名正确——打包端到端 5 项（Blob 339KB、92 条目、user_code.c 逐字符一致）
+- [x] `node --test tests/` 全绿（25/25）；`node tools/run-example-builds.js` 3/3
+- [ ] 现场流程演练：拼积木 → 下载 → VSCode F5 → 板子动，≤ 2 分钟走完 —— **待现场彩排（用户操作，M4）**

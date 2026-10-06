@@ -1250,9 +1250,18 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
       "label": "Build",
       "type": "shell",
       "command": "cmd",
-      "args": ["/c", "env.bat && cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=cmake/arm-gcc-toolchain.cmake && cmake --build build"],
+      "args": ["/c", ".\\build.bat"],
       "options": { "cwd": "${workspaceFolder}" },
-      "problemMatcher": ["$gcc"],
+      "problemMatcher": [
+        {
+          "owner": "arm-gcc",
+          "fileLocation": ["relative", "${workspaceFolder}"],
+          "pattern": {
+            "regexp": "^(.+):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
+            "file": 1, "line": 2, "column": 3, "severity": 4, "message": 5
+          }
+        }
+      ],
       "group": { "kind": "build", "isDefault": true }
     },
     {
@@ -1260,13 +1269,15 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
       "dependsOn": "Build",
       "type": "shell",
       "command": "cmd",
-      "args": ["/c", "env.bat && STM32_Programmer_CLI -c port=SWD -w build\\firmware.elf -v -rst"],
+      "args": ["/c", ".\\flash.bat"],
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": []
     }
   ]
 }
 ```
+
+**执行记录（2026-10-03 深夜修订，快照已同步为现状）**：① 原稿 args 的内联 cmake 命令已被 `build.bat`/`flash.bat` 方案取代（GBK .bat + cmake 非 ASCII 路径两坑的规避，见 Task7 后续执行记录）；② 原稿 `"problemMatcher": ["$gcc"]` 在用户 VSCode 上报"problemMatcher 引用无效: $gcc"（该名字由 C/C++ 扩展 cpptools 提供，未启用/未生效时不认；报错不阻塞构建，属噪音）——已改为**内联自定义匹配器**（owner `arm-gcc`，识别 `file:line:col: error|warning: msg` 的 GCC 输出格式），**不再依赖任何扩展**，任何干净机器可用。三处同步：`template/.vscode/tasks.json`、仓库根 `.vscode/tasks.json`、用户解压副本；template-data.js 已重建。
 
 - [x] **Step 2: 写 `.vscode/launch.json`（全文）**
 
@@ -1278,11 +1289,12 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
       "name": "Debug (ST-Link)",
       "type": "cortex-debug",
       "request": "launch",
-      "servertype": "stlink-gdb-server",
+      "servertype": "stlink",
       "cwd": "${workspaceFolder}",
       "executable": "${workspaceFolder}/build/firmware.elf",
-      "stlinkGdbServerPath": "D:/STM32CubeCLT_1.18.0/STLink-gdb-server/bin/ST-LINK_gdbserver.exe",
+      "stlinkPath": "D:/STM32CubeCLT_1.18.0/STLink-gdb-server/bin/ST-LINK_gdbserver.exe",
       "stm32cubeprogrammer": "D:/STM32CubeCLT_1.18.0/STM32CubeProgrammer/bin",
+      "armToolchainPath": "D:/STM32CubeCLT_1.18.0/GNU-tools-for-STM32/bin",
       "interface": "swd",
       "device": "STM32F103C8",
       "runToEntryPoint": "main",
@@ -1292,7 +1304,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 }
 ```
 
-（若 Cortex-Debug 版本不认 `stlinkGdbServerPath`/`stm32cubeprogrammer` 键名，按其报错提示改为对应键名；烧录已由 preLaunchTask 完成，即使调试器不参与下载也不影响。）
+**执行记录（2026-10-03 深夜，M3 彩排时修正）**：原稿 `"servertype": "stlink-gdb-server"` + `"stlinkGdbServerPath"` 在 cortex-debug 1.12.1 上直接报 `Invalid servertype`（合法值：jlink/openocd/**stlink**/stutil/pyocd/bmp/pe/qemu/external）。对 1.12.1 源码核实：`case "stlink"` 走 ST-Link GDB Server，路径键名是 **`stlinkPath`**（扩展会把它复制进 serverpath；`stlinkGdbServerPath` 在扩展里零出现），并新增 **`armToolchainPath`**（否则 gdb 找不到 arm-none-eabi-gdb）。三处同步修正：`template/.vscode/launch.json`、仓库根 `.vscode/launch.json`、用户解压出的 `F:\STM32HAL\Cmake\按键点灯\按键点灯\.vscode\launch.json`；template-data.js 已重新生成。**用户实测 F5 全链路正常（下载 zip → VSCode 打开 → F5 构建+烧录+调试 → 板子响应，2026-10-03）。**
 
 - [x] **Step 3: 写 `.vscode/settings.json` 与 `.vscode/c_cpp_properties.json`（全文）**
 

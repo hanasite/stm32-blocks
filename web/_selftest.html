@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>STM32 积木工坊 - UI 自检</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>STM32 积木工坊</h1>
+  <button id="btn-help" title="新手接线帮助：面包板结构、怎么供电、模块怎么接">❓ 接线帮助</button>
+  <input id="project-name" type="text" value="我的工程" title="工程名（下载的文件夹名）">
+  <select id="example-select"><option value="">载入示例…</option></select>
+  <button id="btn-export">导出工程</button>
+  <button id="btn-import">导入工程</button>
+  <input id="import-file" type="file" accept=".json" class="hidden">
+  <div id="error-banner" class="hidden"></div>
+  <span id="bridge-status" class="hidden"></span>
+  <button id="btn-build" class="hidden" disabled title="调用本机 CubeCLT 编译当前积木程序">🔨 编译</button>
+  <button id="btn-flash" class="hidden" disabled title="编译并烧录到板子（需要插好 ST-Link）">⚡ 编译并烧录</button>
+  <button id="btn-download" disabled>⬇ 下载完整工程</button>
+</header>
+<main>
+  <section id="panel-objects">
+    <h2>对象区</h2>
+    <div id="object-list"></div>
+    <button id="btn-add-object">＋ 新建对象</button>
+  </section>
+  <section id="panel-canvas">
+    <h2>主循环</h2>
+    <p id="loop-hint">单片机会从头到尾一直执行这一段代码（一直重复）</p>
+    <div id="palette">
+      <div class="pal-block pal-action" data-palette="action">动作</div>
+      <div class="pal-block pal-delay"  data-palette="delay">延时</div>
+      <div class="pal-block pal-if"     data-palette="if">如果</div>
+    </div>
+    <div id="canvas">
+      <div id="loop-slot" data-drop-list="loop"></div>
+      <div id="trash" class="hidden">🗑</div>
+    </div>
+  </section>
+  <section id="panel-code">
+    <h2>生成的代码</h2>
+    <pre id="code-view"></pre>
+    <button id="btn-copy">复制代码</button>
+  </section>
+</main>
+
+<dialog id="object-dialog">
+  <form method="dialog">
+    <h3 id="dlg-title">新建对象</h3>
+    <label>名字 <input id="dlg-name" type="text"></label>
+    <div id="dlg-types"></div>
+    <div id="dlg-params"></div>
+    <p id="dlg-hint" class="hidden"></p>
+    <menu><button value="cancel">取消</button><button id="dlg-ok" value="ok">确定</button></menu>
+  </form>
+</dialog>
+
+<dialog id="log-dialog">
+  <h3 id="log-title">编译中…</h3>
+  <pre id="log-view"></pre>
+  <menu><button id="log-close" type="button">关闭</button></menu>
+</dialog>
+
+<dialog id="help-dialog">
+  <h3>新手接线帮助</h3>
+  <div class="help-body">
+    <h4>1. 面包板的内部构造（记住三条规则）</h4>
+    <svg viewBox="0 0 640 250" class="bb-svg" role="img" aria-label="面包板结构示意图">
+      <defs>
+        <pattern id="bbcol" width="38" height="38" patternUnits="userSpaceOnUse">
+          <rect x="6" y="2" width="16" height="34" rx="8" fill="#dbeafe" stroke="#93c5fd"/>
+        </pattern>
+      </defs>
+      <rect x="20" y="10" width="600" height="230" rx="10" fill="#fbfdff" stroke="#e2e8f0"/>
+      <line x1="32" y1="26" x2="298" y2="26" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+      <line x1="342" y1="26" x2="608" y2="26" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+      <line x1="32" y1="40" x2="298" y2="40" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+      <line x1="342" y1="40" x2="608" y2="40" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+      <line x1="320" y1="18" x2="320" y2="48" stroke="#fca5a5" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="320" y="14" text-anchor="middle" font-size="11" fill="#dc2626" font-weight="bold">断开！左右不相通</text>
+      <rect x="54" y="58" width="532" height="38" fill="url(#bbcol)"/>
+      <rect x="168" y="58" width="16" height="34" rx="8" fill="none" stroke="#2563eb" stroke-width="2"/>
+      <line x1="184" y1="58" x2="184" y2="50" stroke="#2563eb"/>
+      <line x1="184" y1="50" x2="228" y2="50" stroke="#2563eb"/>
+      <text x="232" y="54" font-size="11" fill="#2563eb">一列 5 孔内部连通</text>
+      <rect x="40" y="100" width="560" height="20" fill="#f1f5f9"/>
+      <line x1="40" y1="100" x2="600" y2="100" stroke="#cbd5e1" stroke-dasharray="5 4"/>
+      <line x1="40" y1="120" x2="600" y2="120" stroke="#cbd5e1" stroke-dasharray="5 4"/>
+      <text x="320" y="114" text-anchor="middle" font-size="11" fill="#64748b">中央凹槽：上下两半互不相通（芯片要跨着凹槽插）</text>
+      <rect x="54" y="124" width="532" height="38" fill="url(#bbcol)"/>
+      <line x1="32" y1="184" x2="298" y2="184" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+      <line x1="342" y1="184" x2="608" y2="184" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+      <line x1="32" y1="198" x2="298" y2="198" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+      <line x1="342" y1="198" x2="608" y2="198" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+      <line x1="320" y1="176" x2="320" y2="206" stroke="#fca5a5" stroke-width="2" stroke-dasharray="4 3"/>
+      <text x="320" y="226" text-anchor="middle" font-size="11" fill="#475569">红轨 = 正极（3V3）· 蓝轨 = 负极（GND）· 每条轨左右两段不通 → 左右都要各接一组</text>
+    </svg>
+    <ul>
+      <li><b>一列 5 孔相连</b>：同一竖列（凹槽上、下各算一列）的 5 个孔内部是通的——元件一只脚插进去，同列任意孔都和它连着。</li>
+      <li><b>中央凹槽隔断</b>：凹槽上方和下方互不相通，所以芯片/元件要<b>跨着凹槽</b>插。</li>
+      <li><b>电源轨左右断开</b>：红轨（+）和蓝轨（−）在<b>中间都有断点，左半段和右半段不是一回事</b>——所以左右两段要<b>各接一组 3V3 / GND</b>。偷懒办法：红-红、蓝-蓝各飞一根短线<b>跨过中间的断点桥接</b>，就只引一组。</li>
+    </ul>
+    <h4>2. 先给面包板"通上电"</h4>
+    <ul>
+      <li>单片机 <b>3V3</b> 脚 → 面包板<b>红轨</b>；<b>GND</b> 脚 → <b>蓝轨</b>（左右两段都要，共 4 根线）。</li>
+      <li>之后所有模块的 VCC 插红轨、GND 插蓝轨，不用每个模块单独往单片机拉两根线。</li>
+      <li>用 ST-Link 供电时板子就不用再插 USB 了。</li>
+    </ul>
+    <h4>3. 各模块怎么接</h4>
+    <table>
+      <tr><th>模块</th><th>VCC</th><th>GND</th><th>信号</th></tr>
+      <tr><td>按键</td><td>—</td><td>一端插蓝轨</td><td>另一端 → PA1（配「上拉」，另一端接 GND）</td></tr>
+      <tr><td>红外传感器</td><td>红轨 3V3</td><td>蓝轨</td><td>OUT → PA2（多数模块低电平触发）</td></tr>
+      <tr><td>LED 小灯珠</td><td>长脚(+) 串 220Ω 到红轨</td><td>短脚(−) 接信号脚</td><td>配「低电平亮，另一端接 3V3」</td></tr>
+      <tr><td>蜂鸣器（有源）</td><td>红轨 3V3</td><td>蓝轨</td><td>信号 → PB1（高电平触发款）</td></tr>
+      <tr><td>舵机</td><td><b>接 5V</b>（从板子 5V 脚单独引，别进 3V3 红轨）</td><td>蓝轨共地</td><td>信号 → PA0</td></tr>
+      <tr><td>OLED 屏</td><td>红轨 3V3</td><td>蓝轨</td><td>SCL→PB8、SDA→PB9（接反也能自动识别）</td></tr>
+      <tr><td>板载 LED</td><td colspan="3">无需接线（PC13，低电平亮）</td></tr>
+    </table>
+    <h4>4. 下载线（ST-Link → 板子 SWD 四孔）</h4>
+    <ul>
+      <li>3V3 → 3V3、GND → GND、SWDIO → PA13、SWCLK → PA14（板子靠内侧的一排 4 个孔，有丝印）。</li>
+    </ul>
+    <p class="help-tip">接线口诀：<b>先断电再接</b>；红只进红轨、黑只进蓝轨；插完先检查一遍再上电。拿不准就把积木和接线都截图问学长学姐。</p>
+  </div>
+  <menu><button id="help-close" type="button">关 闭</button></menu>
+</dialog>
+
+<script src="vendor/jszip.min.js"></script>
+<script src="js/catalog.js"></script>
+<script src="js/model.js"></script>
+<script src="js/validate.js"></script>
+<script src="js/codegen.js"></script>
+<script src="js/examples.js"></script>
+<script src="js/packer.js"></script>
+<script src="js/template-data.js"></script>
+<script src="js/render.js"></script>
+<script src="js/dragdrop.js"></script>
+<script src="js/objects.js"></script>
+<script src="js/app.js"></script>
+<script>
+/* UI 自检：模拟用户操作序列，结果以 SELFTEST 行输出到 #selftest-results。
+   用 Edge/Chrome 无头跑：msedge --headless=new --dump-dom --virtual-time-budget=8000 web/_selftest.html */
+window.confirm = function () { return true; };   /* 删除确认自动“确定” */
+window.alert = function (msg) { (window._alerts = window._alerts || []).push(msg); };
+window._errors = [];
+window.onerror = function (msg, src, line, col) {
+  window._errors.push(msg + " @" + (src || "").split("/").pop() + ":" + line + ":" + col);
+  return false;
+};
+window.addEventListener("DOMContentLoaded", function () {
+  setTimeout(function () {
+    var out = [];
+    function rec(name, ok, extra) {
+      out.push("SELFTEST " + (ok ? "PASS" : "FAIL") + " " + name + (extra !== undefined ? " :: " + extra : ""));
+    }
+    try {
+      var project = window.App.getProject();
+      // 1) 初始渲染（blink 示例：key1/led1 两张卡 + 代码含 Key_IsPressed）
+      rec("init-objects", document.querySelectorAll("#object-list .obj-card").length === 2,
+          "cards=" + document.querySelectorAll("#object-list .obj-card").length);
+      rec("init-code", document.getElementById("code-view").textContent.indexOf("Key_IsPressed") >= 0);
+      rec("init-banner-hidden", document.getElementById("error-banner").classList.contains("hidden"));
+      rec("init-download-enabled", document.getElementById("btn-download").disabled === false);
+
+      // 2) 新建对象：蜂鸣器 buzzer9
+      document.getElementById("btn-add-object").click();
+      var dlg = document.getElementById("object-dialog");
+      rec("dialog-open", dlg.open === true);
+      var typeBtns = document.querySelectorAll("#dlg-types button");
+      var buzBtn = Array.prototype.filter.call(typeBtns, function (b) { return b.textContent === "蜂鸣器"; })[0];
+      buzBtn.click();
+      document.getElementById("dlg-name").value = "buzzer9";
+      document.getElementById("dlg-ok").click();
+      rec("add-object", project.objects.length === 3 && document.querySelectorAll("#object-list .obj-card").length === 3,
+          "objects=" + project.objects.length);
+      rec("add-code", document.getElementById("code-view").textContent.indexOf("Buzzer buzzer9") >= 0);
+
+      // 3) 引脚冲突：编辑 buzzer9 引脚为 PC13（与 led1 冲突）
+      document.querySelectorAll("#object-list .obj-card")[2].click();
+      document.querySelector('#dlg-params select[data-param="pin"]').value = "PC13";
+      document.getElementById("dlg-ok").click();
+      rec("conflict-banner", !document.getElementById("error-banner").classList.contains("hidden"),
+          "banner=" + document.getElementById("error-banner").textContent);
+      rec("conflict-disable-download", document.getElementById("btn-download").disabled === true);
+
+      // 恢复引脚 → 横幅消失
+      document.querySelectorAll("#object-list .obj-card")[2].click();
+      document.querySelector('#dlg-params select[data-param="pin"]').value = "PB1";
+      document.getElementById("dlg-ok").click();
+      rec("conflict-cleared", document.getElementById("error-banner").classList.contains("hidden")
+          && document.getElementById("btn-download").disabled === false);
+
+      // 4) 重名拦截：新建 led 重名 led1 → 应被 hint 拦下且对象数不变
+      document.getElementById("btn-add-object").click();
+      var ledBtn = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "LED"; })[0];
+      ledBtn.click();
+      document.getElementById("dlg-name").value = "led1";
+      document.getElementById("dlg-ok").click();
+      rec("dup-name-blocked", project.objects.length === 3 && document.getElementById("object-dialog").open === true);
+      document.querySelector("#object-dialog button[value='cancel']").click();
+
+      // 5) 删除 key1（confirm 已自动 true）；blink 的 if 引用 key1 应被连带清理
+      document.querySelectorAll("#object-list .obj-card")[0].querySelector(".obj-del").click();
+      rec("delete-key", project.objects.length === 2
+          && document.getElementById("code-view").textContent.indexOf("Key_IsPressed") < 0,
+          "objects=" + project.objects.length);
+
+      // 6) localStorage 自动保存
+      var saved = localStorage.getItem("stm32-blocks:project");
+      rec("localstorage", !!saved && saved.indexOf("buzzer9") >= 0);
+
+      // 7) 代码面板复制按钮存在且菜单渲染（静态检查）
+      rec("copy-button", !!document.getElementById("btn-copy"));
+      rec("loop-rendered", document.getElementById("loop-slot").children.length >= 0);
+
+      // 7.5) 新手接线帮助弹窗
+      document.getElementById("btn-help").click();
+      var helpDlg = document.getElementById("help-dialog");
+      rec("help-dialog", helpDlg.open === true && helpDlg.textContent.indexOf("面包板") >= 0
+          && helpDlg.textContent.indexOf("断开") >= 0);
+      document.getElementById("help-close").click();
+      rec("help-close", helpDlg.open === false);
+
+      // 8) 拖拽内核（合成指针事件：palette→画布 / 嵌套 / 自嵌套拒绝 / 垃圾桶删除）
+      function pex(type, tgt, ex, ey) {
+        tgt.dispatchEvent(new PointerEvent(type, {
+          bubbles: true, cancelable: true, clientX: ex, clientY: ey, pointerId: 1, isPrimary: true
+        }));
+      }
+      function mid(elm) { var r = elm.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; }
+      function cdrag(src, tx, ty, via) {
+        var sr = src.getBoundingClientRect();
+        pex("pointerdown", src, sr.left + 6, sr.top + 6);
+        (via || []).forEach(function (pt) {
+          var hit = document.elementFromPoint(pt[0], pt[1]);
+          pex("pointermove", hit || document.body, pt[0], pt[1]);
+        });
+        var drop = document.elementFromPoint(tx, ty);
+        pex("pointerup", drop || document.body, tx, ty);
+      }
+
+      var slot = document.getElementById("loop-slot");
+      var m = mid(slot);
+      var delayPal = document.querySelector('[data-palette="delay"]');
+      cdrag(delayPal, m[0], m[1], [[m[0] - 30, m[1] - 30], [m[0], m[1]]]);
+      rec("drag-add-delay", project.loop.length === 1 && project.loop[0].kind === "delay",
+          "loop=" + project.loop.map(function (n) { return n.kind; }).join(","));
+      rec("drag-add-code", document.getElementById("code-view").textContent.indexOf("Delay_ms(100)") >= 0);
+
+      // "如果"积木需要按键/整数对象才能生成；前面测试删掉了 key1，这里补一个按键对象
+      Model.addObject(project, "key", { pin: "PA2", pull: "up" });
+      window.App.refresh();
+
+      var ifPal = document.querySelector('[data-palette="if"]');
+      var srect = slot.getBoundingClientRect();
+      var bx = srect.left + 40, by = srect.bottom - 8;
+      cdrag(ifPal, bx, by, [[bx, by - 50], [bx, by]]);
+      /* 手动复现渲染路径取真实异常（file:// 下 onerror 拿不到细节） */
+      try {
+        var probeIf = window.App.makePaletteNode("if", project);
+        project.loop.push(probeIf);
+        window.App.refresh();
+        project.loop.pop();
+        window.App.refresh();
+      } catch (e) {
+        out.push("SELFTEST RENDERERR " + e.message
+          + " || probeIf=" + JSON.stringify(probeIf)
+          + " || objs=" + JSON.stringify(project.objects.map(function (o) { return o.id + ":" + o.type + ":" + o.name; }))
+          + " || stack=" + (e.stack || "").split("\n").slice(0, 3).join(" | "));
+      }
+      var dbgMake = window.App.makePaletteNode("if", project);
+      var hitEl = document.elementFromPoint(bx, by);
+      var tRect = document.getElementById("trash").getBoundingClientRect();
+      rec("drag-add-if", project.loop.length === 2 && project.loop[1].kind === "if",
+          "loop=" + project.loop.map(function (n) { return n.kind; }).join(",")
+          + " objs=" + project.objects.length
+          + " makeIf=" + (dbgMake ? dbgMake.kind : "null")
+          + " domBlocks=" + document.querySelectorAll("#loop-slot .blk").length
+          + " hit=" + (hitEl ? (hitEl.id || hitEl.className || hitEl.tagName) : "null")
+          + " bxby=" + Math.round(bx) + "," + Math.round(by)
+          + " slot=" + Math.round(srect.left) + "," + Math.round(srect.top) + "," + Math.round(srect.right) + "," + Math.round(srect.bottom)
+          + " trash=" + Math.round(tRect.left) + "," + Math.round(tRect.top) + "," + Math.round(tRect.right) + "," + Math.round(tRect.bottom));
+
+      var delayEl = document.querySelector('[data-node-id="' + project.loop[0].__uid + '"]');
+      var body = document.querySelector("#loop-slot .blk-if .if-body");
+      var bm = mid(body);
+      var dm = mid(delayEl);
+      cdrag(delayEl, bm[0], bm[1], [[dm[0], dm[1]], [bm[0], bm[1]]]);
+      rec("drag-nest", project.loop.length === 1 && project.loop[0].kind === "if" && project.loop[0].then.length === 1,
+          "then=" + (project.loop[0].then || []).length);
+
+      var ifEl = document.querySelector('[data-node-id="' + project.loop[0].__uid + '"]');
+      var im = mid(ifEl);
+      cdrag(ifEl, bm[0], bm[1], [[im[0], im[1]], [bm[0], bm[1]]]);
+      rec("drag-self-reject", project.loop.length === 1 && project.loop[0].then.length === 1);
+
+      var trash = document.getElementById("trash");
+      ifEl = document.querySelector('[data-node-id="' + project.loop[0].__uid + '"]');   // 重渲染后需重新查询
+      im = mid(ifEl);
+      pex("pointerdown", ifEl, im[0] - 3, im[1] - 3);
+      pex("pointermove", document.body, im[0], im[1]);        // 让垃圾桶显示出来
+      var tm = mid(trash);                                      // 此时 rect 有效
+      var hitT = document.elementFromPoint(tm[0], tm[1]);
+      pex("pointermove", hitT || document.body, tm[0], tm[1]);  // 移到垃圾桶上 → overTrash
+      pex("pointerup", hitT || document.body, tm[0], tm[1]);
+      rec("drag-trash-delete", project.loop.length === 0, "loop=" + project.loop.length
+          + " tm=" + Math.round(tm[0]) + "," + Math.round(tm[1]));
+
+      // 9) 积木内就地编辑（下拉/数字框）
+      Model.addObject(project, "int", { init: 0 });          // count1
+      window.App.refresh();
+      var slotR = document.getElementById("loop-slot").getBoundingClientRect();
+      var px = slotR.left + 60;
+      cdrag(delayPal, px, slotR.top + 30, [[px - 20, slotR.top + 10], [px, slotR.top + 30]]);
+      rec("edit-delay-added", project.loop.length === 1 && project.loop[0].kind === "delay");
+      var delayNum = document.querySelector("#loop-slot .blk-delay input");
+      delayNum.value = "250";
+      delayNum.dispatchEvent(new Event("input", { bubbles: true }));
+      rec("edit-delay-value", project.loop[0].ms === 250
+          && document.getElementById("code-view").textContent.indexOf("Delay_ms(250)") >= 0,
+          "ms=" + project.loop[0].ms);
+
+      // 动作块：拖入 + 切换对象下拉
+      var actPal = document.querySelector('[data-palette="action"]');
+      var srA = document.getElementById("loop-slot").getBoundingClientRect();
+      cdrag(actPal, px, srA.bottom - 10, [[px, srA.bottom - 40], [px, srA.bottom - 10]]);
+      rec("edit-action-added", project.loop.length === 2 && project.loop[1].kind === "action");
+      var actSels = document.querySelectorAll("#loop-slot .blk-action select");
+      rec("edit-action-selects", actSels.length === 2, "sels=" + actSels.length);
+      var buzObj = project.objects.filter(function (o) { return o.type === "buzzer"; })[0];
+      actSels[0].value = buzObj.id;
+      actSels[0].dispatchEvent(new Event("change", { bubbles: true }));
+      rec("edit-action-switch", document.getElementById("code-view").textContent.indexOf("Buzzer_") >= 0);
+
+      // 如果块：条件切到整数比较 + 数值框
+      var srB = document.getElementById("loop-slot").getBoundingClientRect();
+      cdrag(ifPal, px, srB.bottom - 10, [[px, srB.bottom - 40], [px, srB.bottom - 10]]);
+      rec("edit-if-added", project.loop.length === 3 && project.loop[2].kind === "if");
+      var intObj = project.objects.filter(function (o) { return o.type === "int"; })[0];
+      var condSel = document.querySelector("#loop-slot .blk-if select");
+      condSel.value = intObj.id;
+      condSel.dispatchEvent(new Event("change", { bubbles: true }));
+      var condNum = document.querySelector('#loop-slot .blk-if input[type="number"]');
+      condNum.value = "5";
+      condNum.dispatchEvent(new Event("input", { bubbles: true }));
+      rec("edit-if-compare", project.loop[2].cond.kind === "compare" && project.loop[2].cond.value === 5
+          && document.getElementById("code-view").textContent.indexOf("if (count1 >= 5)") >= 0,
+          "cond=" + JSON.stringify(project.loop[2].cond));
+
+      // ＋否则 按钮
+      var addElseBtn = document.querySelector("#loop-slot .add-else-btn");
+      addElseBtn.click();
+      rec("edit-else-btn", !!document.querySelector("#loop-slot .if-else-head"));
+
+      // 10) 示例菜单 / 导出 / 悬停联动
+      rec("menu-options", document.querySelectorAll("#example-select option").length === 7,
+          "opts=" + document.querySelectorAll("#example-select option").length);
+      var exSel = document.getElementById("example-select");
+      exSel.value = "sweep";
+      exSel.dispatchEvent(new Event("change", { bubbles: true }));
+      project = window.App.getProject();   // 载入示例后 app 内部换了工程对象，重新获取
+      rec("menu-load-example", project.projectName === "舵机来回摆" && project.loop.length === 4,
+          "name=" + project.projectName + " loop=" + project.loop.length);
+      var capURL = null;
+      var origCOU = URL.createObjectURL;
+      URL.createObjectURL = function (b) { capURL = b; return "blob:test"; };
+      document.getElementById("btn-export").click();
+      URL.createObjectURL = origCOU;
+      rec("export-blob", !!capURL);
+      var blk0 = document.querySelector("#loop-slot .blk");
+      blk0.dispatchEvent(new MouseEvent("mouseenter"));
+      var hlCount = document.querySelectorAll("#code-view .code-hl").length;
+      blk0.dispatchEvent(new MouseEvent("mouseleave"));
+      var hlAfter = document.querySelectorAll("#code-view .code-hl").length;
+      rec("hover-highlight", hlCount > 0 && hlAfter === 0, "hl=" + hlCount + " after=" + hlAfter);
+
+      // 10.6) 舵机对话框创建（覆盖 5 种类型的最后一种）+ 跨类型引脚冲突（两个舵机同占 PA0）
+      var beforeCnt = project.objects.length;
+      document.getElementById("btn-add-object").click();
+      var srvBtn = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "舵机"; })[0];
+      srvBtn.click();
+      document.getElementById("dlg-name").value = "servo9";
+      document.querySelector('#dlg-params select[data-param="channel"]').value = "TIM1_CH1";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-servo-add", project.objects.length === beforeCnt + 1
+          && document.getElementById("code-view").textContent.indexOf("Servo_Init(&servo9") >= 0,
+          "objs=" + project.objects.length);
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].click();
+      document.querySelector('#dlg-params select[data-param="channel"]').value = "TIM2_CH1";  // 与 servo1 同占 PA0
+      document.getElementById("dlg-ok").click();
+      rec("dialog-servo-conflict", !document.getElementById("error-banner").classList.contains("hidden")
+          && document.getElementById("btn-download").disabled === true,
+          "banner=" + document.getElementById("error-banner").textContent);
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].click();
+      document.querySelector('#dlg-params select[data-param="channel"]').value = "TIM1_CH1";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-servo-conflict-cleared", document.getElementById("error-banner").classList.contains("hidden")
+          && document.getElementById("btn-download").disabled === false);
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
+      rec("dialog-servo-delete", project.objects.length === beforeCnt, "objs=" + project.objects.length);
+
+      // 10.7) 红外 + OLED 对话框创建；OLED 固定占用 PB8/PB9 的冲突拦截
+      var beforeCnt2 = project.objects.length;
+      document.getElementById("btn-add-object").click();
+      var irBtn = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "红外传感器"; })[0];
+      irBtn.click();
+      document.getElementById("dlg-name").value = "ir9";
+      document.querySelector('#dlg-params select[data-param="pin"]').value = "PA2";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-ir-add", project.objects.length === beforeCnt2 + 1
+          && document.getElementById("code-view").textContent.indexOf("Ir_Init(&ir9") >= 0,
+          "objs=" + project.objects.length);
+      document.getElementById("btn-add-object").click();
+      var oledBtn = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "OLED屏"; })[0];
+      oledBtn.click();
+      document.getElementById("dlg-name").value = "oled9";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-oled-add", document.getElementById("code-view").textContent.indexOf("Oled_Init(&oled9") >= 0,
+          "objs=" + project.objects.length);
+
+      // 跑马灯进度：整数对象 + 拖动作块切到「跑马灯」，验证 固定数值/变量 两种模式
+      document.getElementById("btn-add-object").click();
+      var intBtn2 = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "整数"; })[0];
+      intBtn2.click();
+      document.getElementById("dlg-name").value = "count9";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-int-add", document.querySelectorAll("#object-list .obj-card").length === project.objects.length
+          && project.objects.filter(function (o) { return o.name === "count9"; }).length === 1);
+      var actPal2 = document.querySelector('[data-palette="action"]');
+      var srQ = document.getElementById("loop-slot").getBoundingClientRect();
+      var qx = srQ.left + 60;
+      cdrag(actPal2, qx, srQ.bottom - 10, [[qx, srQ.bottom - 40], [qx, srQ.bottom - 10]]);
+      var oledObj9 = project.objects.filter(function (o) { return o.name === "oled9"; })[0];
+      var selsA = document.querySelectorAll("#loop-slot > .blk:last-child select");
+      selsA[0].value = oledObj9.id;
+      selsA[0].dispatchEvent(new Event("change", { bubbles: true }));
+      selsA = document.querySelectorAll("#loop-slot > .blk:last-child select");
+      selsA[1].value = "marquee";
+      selsA[1].dispatchEvent(new Event("change", { bubbles: true }));
+      var marqueeInput = document.querySelector("#loop-slot > .blk:last-child input[type='number']");
+      rec("edit-marquee-fixed", !!marqueeInput
+          && document.querySelector("#loop-slot > .blk:last-child").textContent.indexOf("显示进度") >= 0
+          && document.getElementById("code-view").textContent.indexOf("Oled_Marquee(&oled9, 0)") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Oled_Marquee[^;]*/) || [""])[0]);
+      marqueeInput.value = "40";
+      marqueeInput.dispatchEvent(new Event("input", { bubbles: true }));
+      rec("edit-marquee-fixed-40", document.getElementById("code-view").textContent.indexOf("Oled_Marquee(&oled9, 40)") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Oled_Marquee[^;]*/) || [""])[0]);
+      var modeSel = document.querySelectorAll("#loop-slot > .blk:last-child select")[2];
+      modeSel.value = project.objects.filter(function (o) { return o.name === "count9"; })[0].id;
+      modeSel.dispatchEvent(new Event("change", { bubbles: true }));
+      rec("edit-marquee-var", document.querySelector("#loop-slot > .blk:last-child input[type='number']") === null
+          && document.getElementById("code-view").textContent.indexOf("Oled_Marquee(&oled9, count9)") >= 0
+          && document.getElementById("code-view").textContent.indexOf("跑马灯：显示进度 count9") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Oled_Marquee[^;]*/) || [""])[0]);
+
+      // 小恐龙组件：建 dino → 拖块切成 dino → OLED/跳跃输入自动绑定
+      document.getElementById("btn-add-object").click();
+      var dinoBtn = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "小恐龙游戏"; })[0];
+      dinoBtn.click();
+      document.getElementById("dlg-name").value = "dino9";
+      document.getElementById("dlg-ok").click();
+      rec("dialog-dino-add", document.getElementById("code-view").textContent.indexOf("Dino_Init(&dino9") >= 0,
+          "objs=" + project.objects.length);
+      var actPal3 = document.querySelector('[data-palette="action"]');
+      var srD = document.getElementById("loop-slot").getBoundingClientRect();
+      var dx = srD.left + 60;
+      cdrag(actPal3, dx, srD.bottom - 10, [[dx, srD.bottom - 40], [dx, srD.bottom - 10]]);
+      var dinoObj = project.objects.filter(function (o) { return o.name === "dino9"; })[0];
+      var dSel = document.querySelectorAll("#loop-slot > .blk:last-child select");
+      dSel[0].value = dinoObj.id;
+      dSel[0].dispatchEvent(new Event("change", { bubbles: true }));
+      var dinoBlock = document.querySelector("#loop-slot > .blk:last-child");
+      rec("edit-dino-bind", dinoBlock.textContent.indexOf("显示到") >= 0
+          && dinoBlock.textContent.indexOf("跳跃输入") >= 0
+          && document.querySelectorAll("#loop-slot > .blk:last-child select").length === 5
+          && document.getElementById("code-view").textContent.indexOf("Dino_Frame(&dino9, &oled9, Ir_IsTriggered(&ir9));") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Dino_Frame[^;]*/) || [""])[0]);
+      var dStateSel = document.querySelectorAll("#loop-slot > .blk:last-child select")[4];
+      dStateSel.value = "idle";
+      dStateSel.dispatchEvent(new Event("change", { bubbles: true }));
+      rec("edit-dino-state", document.getElementById("code-view").textContent.indexOf("Dino_Frame(&dino9, &oled9, Ir_IsIdle(&ir9));") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Dino_Frame[^;]*/) || [""])[0]);
+      var dJumpSel = document.querySelectorAll("#loop-slot > .blk:last-child select")[3];
+      dJumpSel.value = "__hook__";
+      dJumpSel.dispatchEvent(new Event("change", { bubbles: true }));
+      rec("edit-dino-hook", document.getElementById("code-view").textContent.indexOf("Dino_Frame(&dino9, &oled9, DINO_JUMP_HOOK);") >= 0,
+          "code=" + (document.getElementById("code-view").textContent.match(/Dino_Frame[^;]*/) || [""])[0]);
+      window.App.refresh();   // 再刷一轮：钩子选择不能被自动补选覆盖（回归）
+      rec("edit-dino-hook-persists",
+          document.getElementById("code-view").textContent.indexOf("Dino_Frame(&dino9, &oled9, DINO_JUMP_HOOK);") >= 0
+          && document.querySelectorAll("#loop-slot > .blk:last-child select")[3].value === "__hook__",
+          "code=" + (document.getElementById("code-view").textContent.match(/Dino_Frame[^;]*/) || [""])[0]);
+
+      document.getElementById("btn-add-object").click();
+      var ledBtn2 = Array.prototype.filter.call(document.querySelectorAll("#dlg-types button"),
+          function (b) { return b.textContent === "LED"; })[0];
+      ledBtn2.click();
+      document.getElementById("dlg-name").value = "led9";
+      document.querySelector('#dlg-params select[data-param="pin"]').value = "PB8";
+      document.getElementById("dlg-ok").click();
+      rec("oled-reserved-pin-conflict", !document.getElementById("error-banner").classList.contains("hidden")
+          && document.getElementById("error-banner").textContent.indexOf("PB8") >= 0,
+          "banner=" + document.getElementById("error-banner").textContent);
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
+      document.querySelectorAll("#object-list .obj-card")[project.objects.length - 1].querySelector(".obj-del").click();
+      rec("dialog-ir-oled-cleanup", project.objects.length === beforeCnt2, "objs=" + project.objects.length);
+    } catch (err) {
+      out.push("SELFTEST FAIL exception :: " + (err && err.message));
+    }
+    if (window._errors.length > 0) {
+      out.push("SELFTEST PAGEERR " + window._errors.join(" | "));
+    }
+    var pre = document.createElement("pre");
+    pre.id = "selftest-results";
+    pre.textContent = out.join("\n");
+    document.body.appendChild(pre);
+
+    // 11) 打包端到端（异步）：点下载 → 截获 Blob → 校验 zip 内容
+    (async function () {
+      var lines = [];
+      function rec2(name, ok, extra) {
+        lines.push("SELFTEST " + (ok ? "PASS" : "FAIL") + " " + name + (extra !== undefined ? " :: " + extra : ""));
+      }
+      try {
+        rec2("zip-template-embedded", !!window.TEMPLATE_ZIP,
+            window.TEMPLATE_ZIP ? "len=" + window.TEMPLATE_ZIP.length : "missing");
+        var capBlob = null;
+        var orig = URL.createObjectURL;
+        URL.createObjectURL = function (b) { capBlob = b; return "blob:test"; };
+        try {
+          document.getElementById("btn-download").click();
+          for (var i = 0; i < 100 && !capBlob; i++) {
+            await new Promise(function (r) { setTimeout(r, 30); });
+          }
+        } finally {
+          URL.createObjectURL = orig;
+        }
+        rec2("zip-download-blob", !!capBlob, capBlob ? capBlob.size + " bytes" : "null");
+        if (capBlob) {
+          var zip = await JSZip.loadAsync(await capBlob.arrayBuffer());
+          var p = window.App.getProject();
+          var root = (p.projectName || "我的工程") + "/";
+          var names = Object.keys(zip.files);
+          rec2("zip-root-renamed", names.indexOf(root + "Core/Src/user_code.c") >= 0, "root=" + root);
+          rec2("zip-has-build-scripts",
+              names.indexOf(root + "build.bat") >= 0 && names.indexOf(root + "flash.bat") >= 0
+              && names.indexOf(root + ".vscode/tasks.json") >= 0,
+              "n=" + names.filter(function (n) { return n.indexOf(root) === 0; }).length);
+          var uc = await zip.file(root + "Core/Src/user_code.c").async("string");
+          rec2("zip-usercode-matches", uc === Codegen.generate(p));
+        }
+      } catch (e) {
+        rec2("zip-exception", false, e.message);
+      }
+      pre.textContent += "\n" + lines.join("\n");
+    })();
+
+    // 12) 本地编译服务在线时才跑：点「编译」→ 等结果（file:// 离线模式静默跳过，不加行）
+    (async function () {
+      var lines = [];
+      var info = null;
+      for (var i = 0; i < 40 && !info; i++) {
+        info = window.App.getBridge();
+        if (!info) { await new Promise(function (r) { setTimeout(r, 50); }); }
+      }
+      if (!info) { return; }
+      lines.push("SELFTEST PASS bridge-connected :: gcc=" + (info.gcc || "?"));
+      document.getElementById("btn-build").click();
+      var title = document.getElementById("log-title");
+      for (var j = 0; j < 600 && title.textContent.indexOf("✅") < 0 && title.textContent.indexOf("❌") < 0; j++) {
+        await new Promise(function (r) { setTimeout(r, 100); });
+      }
+      var ok = title.textContent.indexOf("✅") >= 0;
+      lines.push("SELFTEST " + (ok ? "PASS" : "FAIL") + " bridge-compile-click :: " + title.textContent
+        + " :: " + document.getElementById("log-view").textContent.slice(0, 80).replace(/\n/g, " "));
+      pre.textContent += "\n" + lines.join("\n");
+    })();
+  }, 200);
+});
+</script>
+</body>
+</html>

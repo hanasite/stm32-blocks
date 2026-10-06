@@ -23,6 +23,9 @@ set(CORE_SOURCES
   Core/Src/bsp_buzzer.c
   Core/Src/bsp_servo.c
   Core/Src/bsp_ssd1306.c
+  Core/Src/bsp_ir.c
+  Core/Src/bsp_oled.c
+  Core/Src/bsp_dino.c
 )
 
 set(HAL_SOURCES

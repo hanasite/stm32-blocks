@@ -95,9 +95,9 @@ static void ssd_data(const uint8_t *p, uint16_t n)
     i2c_stop();
 }
 
-/* ---------- 5x7 font (31 glyphs, column-major, LSB = top row) ---------- */
-/* order: space 0-9 A C D E G H I K L O P R S T W Y = : - . */
-static const uint8_t FONT[31][5] = {
+/* ---------- 5x7 font (32 glyphs, column-major, LSB = top row) ---------- */
+/* order: space 0-9 A C D E G H I K L O P R S T W Y = : - . N */
+static const uint8_t FONT[32][5] = {
     {0x00, 0x00, 0x00, 0x00, 0x00}, /* space */
     {0x3E, 0x51, 0x49, 0x45, 0x3E}, /* 0 */
     {0x00, 0x42, 0x7F, 0x40, 0x00}, /* 1 */
@@ -129,6 +129,7 @@ static const uint8_t FONT[31][5] = {
     {0x00, 0x36, 0x36, 0x00, 0x00}, /* : */
     {0x08, 0x08, 0x08, 0x08, 0x08}, /* - */
     {0x00, 0x60, 0x60, 0x00, 0x00}, /* . */
+    {0x7F, 0x04, 0x08, 0x10, 0x7F}, /* N */
 };
 
 static uint8_t glyph_index(char c)
@@ -142,7 +143,7 @@ static uint8_t glyph_index(char c)
         case 'O': return 20; case 'P': return 21; case 'R': return 22;
         case 'S': return 23; case 'T': return 24; case 'W': return 25;
         case 'Y': return 26; case '=': return 27; case ':': return 28;
-        case '-': return 29; case '.': return 30;
+        case '-': return 29; case '.': return 30; case 'N': return 31;
         default:  return 0;
     }
 }
@@ -150,12 +151,24 @@ static uint8_t glyph_index(char c)
 /* ---------- framebuffer ---------- */
 static uint8_t buf[8][128];
 
-uint8_t Oled_Ok(void) { return oled_ok; }
+void SSD1306_Pixel(uint8_t x, uint8_t y, uint8_t on)
+{
+    if (x > 127 || y > 63) { return; }
+    if (on) { buf[y >> 3][x] |= (uint8_t)(1u << (y & 7)); }
+    else    { buf[y >> 3][x] &= (uint8_t)~(1u << (y & 7)); }
+}
+
+const uint8_t *SSD1306_Glyph(char c)
+{
+    return FONT[glyph_index(c)];
+}
+
+uint8_t SSD1306_Ok(void) { return oled_ok; }
 
 /* 释放两根线后读实际电平：bit1=SDA, bit0=SCL。
    3 = 模块上拉电阻在拉高（模块通电、线接对）；
    否则模块可能没供电 / 没上拉 / 线没接上。 */
-uint8_t Oled_LineStates(void)
+uint8_t SSD1306_LineStates(void)
 {
     if (scl_port == 0) { return 0; }
     scl_write(1);
@@ -164,12 +177,12 @@ uint8_t Oled_LineStates(void)
     return (uint8_t)((sda_read() << 1) | scl_read());
 }
 
-void Oled_Clear(void)
+void SSD1306_Clear(void)
 {
     memset(buf, 0, sizeof(buf));
 }
 
-void Oled_Text(uint8_t line, const char *s)
+void SSD1306_Text(uint8_t line, const char *s)
 {
     if (line > 7) { return; }
     memset(buf[line], 0, 128);
@@ -187,7 +200,7 @@ void Oled_Text(uint8_t line, const char *s)
     }
 }
 
-void Oled_Refresh(void)
+void SSD1306_Refresh(void)
 {
     if (!oled_ok) { return; }
     for (uint8_t page = 0; page < 8; page++)
@@ -199,7 +212,7 @@ void Oled_Refresh(void)
     }
 }
 
-uint8_t Oled_Init(void)
+uint8_t SSD1306_Init(void)
 {
     /* PB8/PB9 两种线序都探测一遍，地址 0x3C/0x3D 都认 */
     if (!try_pins(GPIOB, GPIO_PIN_8, GPIOB, GPIO_PIN_9, &oled_addr) &&
@@ -233,7 +246,7 @@ uint8_t Oled_Init(void)
     for (uint32_t i = 0; i < sizeof(init_seq); i++) { ssd_cmd(init_seq[i]); }
 
     oled_ok = 1;
-    Oled_Clear();
-    Oled_Refresh();
+    SSD1306_Clear();
+    SSD1306_Refresh();
     return 1;
 }

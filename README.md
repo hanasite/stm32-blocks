@@ -1,17 +1,33 @@
 # STM32 积木工坊
 
-社团招新用的 STM32 图形化编程小工具：拖拽积木拼主循环 → 实时生成 C 代码 → 编译烧录，板子动起来。
+拖拽积木 → 实时生成 C 代码 → 一键编译烧录。面向**没写过代码**的新同学：一块 STM32F103C8T6（蓝药丸）+ 一根 ST-Link，十分钟做出第一个作品。
 
-- 目标硬件：STM32F103C8T6（蓝药丸）+ HAL + CMake/Ninja 工程 + VSCode / ST-Link
-- 工具形态：零构建静态网页（`web/index.html`），双击即用、离线可用
-- 外设积木：按键 / 红外传感器 / LED / 蜂鸣器 / 舵机 / OLED 屏 / 整数变量 + 延时 / 如果-否则；引脚自由选，冲突自动拦截
-- 组件积木：小恐龙游戏（跑在 OLED 上；块内绑定「显示到」某块屏 + 「跳跃输入」某按键/红外或「外部钩子」，跳跃带 300ms 冷却期；钩子模式配合「请求跳跃」积木可由外层 if 驱动）
-- OLED 玩法（每次只显示一样、大字体）：YES / NO / LOW / HIGH / 显示单个变量 / 最外圈 5px 跑马灯（进度 0~100，中间大字显示进度数值）
-- 内置示例：按键点灯、按键组合技、舵机来回摆、红外感应灯、跑马灯进度圈、小恐龙游戏
-- 内置「❓ 接线帮助」：面包板构造图解（电源轨左右断开要点）、供电、模块接线表、SWD 下载线
-- 招新目标：2026 年 10 月中旬
-- 设计文档：[docs/superpowers/specs/2026-10-03-stm32-block-editor-design.md](docs/superpowers/specs/2026-10-03-stm32-block-editor-design.md)
-- 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md)（加新组件的完整清单）
+![编辑器截图](docs/images/editor.png)
+
+左边定义对象（按键、红外、OLED、小恐龙……像 Python 里创建对象一样），中间拖积木拼主循环，右边实时生成对照的 C 代码——点「🔨 编译」「⚡ 编译并烧录」直接上板。
+
+## 功能一览
+
+**积木**
+
+- 外设积木：按键 / 红外传感器 / LED / 蜂鸣器 / 舵机 / OLED 屏 / 整数变量，加 延时 / 如果-否则（C 形包裹显示、逐级缩进）
+- OLED 玩法（每次只显示一样、大字体）：YES / NO / LOW / HIGH / 显示变量 / 最外圈 5px 跑马灯（进度 0~100，中间大字显示数值）
+- 组件积木：小恐龙游戏（跑在 OLED 上；块内绑定「显示到」某块屏 + 「跳跃输入」某按键/红外或「外部钩子」，300ms 跳跃冷却；钩子模式可由外层任意逻辑驱动跳跃）
+- 引脚自由选、冲突自动拦截（含 OLED 固定占用 PB8/PB9）；积木与代码面板悬停联动
+
+**体验**
+
+- 内置 6 个示例一键载入：按键点灯 / 按键组合技 / 舵机来回摆 / 红外感应灯 / 跑马灯进度圈 / 小恐龙游戏
+- 内置「❓ 接线帮助」：面包板结构图解（电源轨左右断开、中央凹槽）、供电方法、模块接线表、SWD 下载线
+- 生成的即为完整 CMake 工程（HAL + 手写精简 BSP，含 `.vscode` 一键配置），也可下载 zip 进 VSCode F5 单步调试
+- 零构建静态网页、零 npm 依赖、断网可用
+
+<details>
+<summary>❓ 接线帮助界面（点开看）</summary>
+
+![接线帮助](docs/images/help.png)
+
+</details>
 
 ## 三种使用方式
 
@@ -36,15 +52,25 @@
 
 双击 **`制作便携U盘.bat`**（或 `node tools/make-portable.js <目标目录>`）生成约 2.5GB 的便携版；插到任何 Windows 电脑双击 `启动本地编译服务-便携.bat` 即用，盘符变了也不受影响。重复运行脚本 = 增量更新。
 
-**详细安装说明（含 FubeMX 等下载渠道、验证清单、常见坑）：[docs/部署指南.md](docs/部署指南.md)；给 AI 助手的版本：[docs/部署指南-Agent.md](docs/部署指南-Agent.md)。**
+**详细安装说明（下载渠道、验证清单、常见坑）：[docs/部署指南.md](docs/部署指南.md)；给 AI 助手的版本：[docs/部署指南-Agent.md](docs/部署指南-Agent.md)。**
+
+## 项目结构
+
+```
+web/        零构建前端：编辑器（catalog/codegen/render…）、本地服务客户端、无头自检页
+tools/      本地编译服务 serve.js、模板内嵌 embed-template、示例编译回归、便携版打包
+template/   STM32 工程模板：手写 BSP 驱动 + CMake/Ninja + .vscode 配置（zip 与直连编译的底座）
+tests/      node --test 单元测试（含 golden 测试逐字符锁定生成代码格式）
+docs/       设计文档、部署指南、实施计划与踩坑记录
+```
 
 ## 开发与贡献
 
-- 单元测试：`node --test`（42 项，含 golden 测试逐字符锁定生成代码格式）
-- UI 无头自检：Edge 无头打开 `web/_selftest.html`（离线 57 项全绿；本地服务在线时 59 项，含真实"点击编译"端到端）
-- 示例编译回归：`node tools/run-example-builds.js`（6/6 通过）
-- 便携版打包：`node tools/make-portable.js <目标目录>`（详见 [部署指南](docs/部署指南.md) 场景 C）
-- **模板（`template/`）任何改动后必须重跑 `node tools/embed-template.js`**，否则网页里内嵌的还是旧模板
-- 想加新组件/外设？看 [CONTRIBUTING.md](CONTRIBUTING.md) 的完整清单；提 PR 前请把上面三道质量门跑绿
+- 质量门：`node --test`（42 项全绿）/ `node tools/run-example-builds.js`（6/6 真编译）/ Edge 无头 UI 自检（离线 57 项、本地服务在线 59 项）
+- ⚠️ **改动 `template/` 后必须重跑 `node tools/embed-template.js`**，否则网页内嵌的还是旧模板
+- 想加新组件/外设？看 [CONTRIBUTING.md](CONTRIBUTING.md) 的完整清单；提 PR 按模板勾选，先提 [组件提案](issues/new?template=component-proposal.md) 对齐设计
+- 便携版打包/更新：`node tools/make-portable.js <目标目录>`
 
-MIT License
+## License
+
+MIT

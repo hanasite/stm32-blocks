@@ -8,14 +8,16 @@
 - 组件积木：小恐龙游戏（跑在 OLED 上；块内绑定「显示到」某块屏 + 「跳跃输入」某按键/红外或「外部钩子」，跳跃带 300ms 冷却期；钩子模式配合「请求跳跃」积木可由外层 if 驱动）
 - OLED 玩法（每次只显示一样、大字体）：YES / NO / LOW / HIGH / 显示单个变量 / 最外圈 5px 跑马灯（进度 0~100，中间大字显示进度数值）
 - 内置示例：按键点灯、按键组合技、舵机来回摆、红外感应灯、跑马灯进度圈、小恐龙游戏
+- 内置「❓ 接线帮助」：面包板构造图解（电源轨左右断开要点）、供电、模块接线表、SWD 下载线
 - 招新目标：2026 年 10 月中旬
 - 设计文档：[docs/superpowers/specs/2026-10-03-stm32-block-editor-design.md](docs/superpowers/specs/2026-10-03-stm32-block-editor-design.md)
+- 贡献指南：[CONTRIBUTING.md](CONTRIBUTING.md)（加新组件的完整清单）
 
-## 两种使用方式
+## 三种使用方式
 
 ### A. 现场直连模式（推荐：自带/现场笔记本，不用 VSCode）
 
-本机装好 [STM32CubeCLT](https://www.st.com/en/development-tools/stm32cubeclt.html)（默认 `D:\STM32CubeCLT_1.18.0`，可用环境变量 `CUBECLT` 指向其它路径）与 Node.js，然后：
+本机装好 [STM32CubeCLT](https://www.st.com/en/development-tools/stm32cubeclt.html)（默认 `D:\STM32CubeCLT_1.18.0`，可用环境变量 `CUBECLT` 指向其它路径；国内可从 [FubeMX](https://fubemx.keysking.com) 下载）与 Node.js，然后：
 
 1. 双击 **`启动本地编译服务.bat`** —— 自动打开浏览器到 `http://127.0.0.1:8899/`，页头出现「本地工具链已连接」徽标
 2. 拼积木 → 点 **「🔨 编译」**（约 3 秒出结果；代码有错会直接显示编译日志）
@@ -30,11 +32,19 @@
 
 需要对方自行安装 STM32CubeCLT 与 cortex-debug 扩展（模板自带 `.vscode/` 配置与一键脚本，无需其它设置）。
 
-## 开发
+### C. 便携 U 盘模式（零安装，自带 Node + CubeCLT）
+
+双击 **`制作便携U盘.bat`**（或 `node tools/make-portable.js <目标目录>`）生成约 2.5GB 的便携版；插到任何 Windows 电脑双击 `启动本地编译服务-便携.bat` 即用，盘符变了也不受影响。重复运行脚本 = 增量更新。
+
+**详细安装说明（含 FubeMX 等下载渠道、验证清单、常见坑）：[docs/部署指南.md](docs/部署指南.md)；给 AI 助手的版本：[docs/部署指南-Agent.md](docs/部署指南-Agent.md)。**
+
+## 开发与贡献
 
 - 单元测试：`node --test`（42 项，含 golden 测试逐字符锁定生成代码格式）
 - UI 无头自检：Edge 无头打开 `web/_selftest.html`（离线 57 项全绿；本地服务在线时 59 项，含真实"点击编译"端到端）
 - 示例编译回归：`node tools/run-example-builds.js`（6/6 通过）
+- 便携版打包：`node tools/make-portable.js <目标目录>`（详见 [部署指南](docs/部署指南.md) 场景 C）
 - **模板（`template/`）任何改动后必须重跑 `node tools/embed-template.js`**，否则网页里内嵌的还是旧模板
+- 想加新组件/外设？看 [CONTRIBUTING.md](CONTRIBUTING.md) 的完整清单；提 PR 前请把上面三道质量门跑绿
 
 MIT License

@@ -1,4 +1,5 @@
-# 只用 CubeCLT 自带的 arm-none-eabi 工具链（环境变量 CUBECLT 可覆盖安装位置）
+# 交叉工具链：优先用 CubeCLT 自带（环境变量 CUBECLT 可覆盖安装位置）；
+# 找不到就回退到系统 PATH（Linux / 容器里 apt install gcc-arm-none-eabi）
 set(CUBECLT_ROOT "$ENV{CUBECLT}")
 if(NOT CUBECLT_ROOT)
   set(CUBECLT_ROOT "D:/STM32CubeCLT_1.18.0")
@@ -10,10 +11,22 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
 find_program(CMAKE_C_COMPILER   NAMES arm-none-eabi-gcc     PATHS "${TOOLCHAIN_BIN}" NO_DEFAULT_PATH)
+if(NOT CMAKE_C_COMPILER)
+  find_program(CMAKE_C_COMPILER NAMES arm-none-eabi-gcc)
+endif()
 find_program(CMAKE_ASM_COMPILER NAMES arm-none-eabi-gcc     PATHS "${TOOLCHAIN_BIN}" NO_DEFAULT_PATH)
+if(NOT CMAKE_ASM_COMPILER)
+  find_program(CMAKE_ASM_COMPILER NAMES arm-none-eabi-gcc)
+endif()
 find_program(CMAKE_OBJCOPY      NAMES arm-none-eabi-objcopy PATHS "${TOOLCHAIN_BIN}" NO_DEFAULT_PATH)
+if(NOT CMAKE_OBJCOPY)
+  find_program(CMAKE_OBJCOPY NAMES arm-none-eabi-objcopy)
+endif()
 find_program(CMAKE_SIZE         NAMES arm-none-eabi-size    PATHS "${TOOLCHAIN_BIN}" NO_DEFAULT_PATH)
+if(NOT CMAKE_SIZE)
+  find_program(CMAKE_SIZE NAMES arm-none-eabi-size)
+endif()
 
 if(NOT CMAKE_C_COMPILER)
-  message(FATAL_ERROR "找不到 arm-none-eabi-gcc：请安装 STM32CubeCLT，或用环境变量 CUBECLT 指定安装目录")
+  message(FATAL_ERROR "找不到 arm-none-eabi-gcc：请安装 STM32CubeCLT（或用环境变量 CUBECLT 指定目录）；Linux 下可 apt install gcc-arm-none-eabi")
 endif()

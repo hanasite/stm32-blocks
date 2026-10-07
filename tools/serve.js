@@ -7,10 +7,11 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
-const { ROOT, TEMPLATE, CUBECLT, EXE, cubecltEnv, copyTemplate, runBuild, cmakePath } = require("./lib/project-build.js");
+const { ROOT, TEMPLATE, CUBECLT, EXE, HAS_CUBECLT, cubecltEnv, copyTemplate, runBuild, cmakePath, gccPath, programmerPath, canFlash } = require("./lib/project-build.js");
 
 const WEB = path.join(ROOT, "web");
 const LOCAL_BUILDS = path.join(ROOT, "local-builds");
+const HOST = process.env.HOST || "127.0.0.1";   /* 容器里用 HOST=0.0.0.0 */
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -36,10 +37,17 @@ function trimLog(log) {
 let gccCache = null;
 function gccVersion() {
   if (gccCache !== null) { return gccCache; }
-  const gcc = path.join(CUBECLT, "GNU-tools-for-STM32", "bin", "arm-none-eabi-gcc" + EXE);
-  const r = spawnSync(gcc, ["--version"], { encoding: "utf8", shell: false });
+  const r = spawnSync(gccPath(), ["--version"], { encoding: "utf8", shell: false });
   gccCache = r.status === 0 ? String(r.stdout).split("\n")[0] : "";
   return gccCache;
+}
+
+let toolsOkCache = null;
+function toolsOk() {
+  if (toolsOkCache === null) {
+    toolsOkCache = spawnSync(cmakePath(), ["--version"], { encoding: "utf8", shell: false }).status === 0;
+  }
+  return toolsOkCache;
 }
 
 function readBody(req, limit) {
@@ -101,7 +109,8 @@ function doFlash(name) {
   const elf = path.join(dir, "build", "firmware.elf");
   const done = (ok, log) => ({ ok, log: trimLog(log), secs: +((Date.now() - t0) / 1000).toFixed(1) });
   if (!fs.existsSync(elf)) { return done(false, "没有找到编译产物：请先点「编译」，再点「编译并烧录」。"); }
-  const cli = path.join(CUBECLT, "STM32CubeProgrammer", "bin", "STM32_Programmer_CLI" + EXE);
+  if (!canFlash()) { return done(false, "当前没有可用的烧录器（NAS/容器模式）：请在编译成功后下载 .hex / .bin 到电脑，用 STM32CubeProgrammer 烧录。"); }
+  const cli = programmerPath();
   const env = cubecltEnv();
   const r1 = spawnSync(cli, ["-c", "port=SWD", "-w", elf, "-v", "-rst"], { cwd: "C:\\", env, encoding: "utf8", shell: false });
   let log = (r1.stdout || "") + (r1.stderr || "");
@@ -147,11 +156,27 @@ function createBridge(opts) {
       json(res, 200, {
         ok: true,
         node: process.version,
-        cubeclt: CUBECLT,
-        cubecltOk: fs.existsSync(cmakePath()),
+        cubeclt: HAS_CUBECLT ? CUBECLT : "(系统工具链)",
+        cubecltOk: toolsOk(),
+        canFlash: canFlash(),
         templateOk: fs.existsSync(path.join(TEMPLATE, "Core", "Src", "user_code.c")),
         gcc: gccVersion(),
       });
+      return;
+    }
+
+    if (p === "/api/download" && req.method === "GET") {
+      const nm = safeName(u.searchParams.get("name") || "");
+      const ext = (u.searchParams.get("ext") || "hex").toLowerCase();
+      if (["hex", "bin", "elf"].indexOf(ext) < 0) { json(res, 400, { ok: false, log: "ext 只支持 hex / bin / elf" }); return; }
+      const file = path.join(LOCAL_BUILDS, nm, "build", "firmware." + ext);
+      if (!fs.existsSync(file)) { json(res, 404, { ok: false, log: "还没有这个产物：先在页面上「编译」一次" }); return; }
+      const dlName = encodeURIComponent(nm + "." + ext);
+      res.writeHead(200, {
+        "Content-Type": "application/octet-stream",
+        "Content-Disposition": "attachment; filename=\"" + dlName + "\"; filename*=UTF-8''" + dlName,
+      });
+      fs.createReadStream(file).pipe(res);
       return;
     }
 
@@ -179,7 +204,7 @@ function createBridge(opts) {
   const server = http.createServer(handle);
   const ready = new Promise((resolve, reject) => {
     server.once("error", reject);
-    server.listen(opts.port || 0, "127.0.0.1", resolve);
+    server.listen(opts.port || 0, opts.host || HOST, resolve);
   });
   return {
     server,
@@ -194,9 +219,14 @@ function createBridge(opts) {
 
 function openBrowser(url) {
   try {
-    if (process.platform === "win32") { spawn("cmd", ["/c", "start", "", url], { detached: true, stdio: "ignore" }).unref(); }
-    else if (process.platform === "darwin") { spawn("open", [url], { detached: true, stdio: "ignore" }).unref(); }
-    else { spawn("xdg-open", [url], { detached: true, stdio: "ignore" }).unref(); }
+    let c = null;
+    if (process.platform === "win32") { c = spawn("cmd", ["/c", "start", "", url], { detached: true, stdio: "ignore" }); }
+    else if (process.platform === "darwin") { c = spawn("open", [url], { detached: true, stdio: "ignore" }); }
+    else { c = spawn("xdg-open", [url], { detached: true, stdio: "ignore" }); }
+    if (c) {
+      c.on("error", function () { /* 无桌面环境（容器）时忽略 */ });
+      c.unref();
+    }
   } catch (e) { /* 打不开浏览器不致命 */ }
 }
 
@@ -206,9 +236,10 @@ if (require.main === module) {
   const port = Number(process.env.PORT || 8899);
   const srv = createBridge({ port });
   srv.ready.then(() => {
-    const url = "http://127.0.0.1:" + srv.port + "/";
-    console.log("本地编译服务已启动: " + url);
-    console.log("CubeCLT: " + CUBECLT + (fs.existsSync(cmakePath()) ? "" : "  [未找到！]"));
+    const shown = (HOST === "0.0.0.0" || HOST === "::") ? "127.0.0.1" : HOST;
+    const url = "http://" + shown + ":" + srv.port + "/";
+    console.log("本地编译服务已启动: " + url + (HOST === "0.0.0.0" ? "  (监听 0.0.0.0:" + srv.port + ")" : ""));
+    console.log("工具链: " + (HAS_CUBECLT ? CUBECLT : "系统 PATH（cmake / arm-none-eabi-gcc）"));
     console.log("按 Ctrl+C 退出。");
     if (process.argv.indexOf("--no-open") < 0) { openBrowser(url); }
   }).catch((e) => {

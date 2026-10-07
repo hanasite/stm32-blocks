@@ -16,6 +16,7 @@
 | A 直连（主推） | Node ≥18 + STM32CubeCLT | 双击 `启动本地编译服务.bat` → 页面出现「本地工具链已连接」→ 能编译能烧录 |
 | B 分发 | STM32CubeCLT + VSCode + cortex-debug | 下载 zip → 解压 → F5 → 板子动 |
 | C 便携 U 盘 | 无（自带 env\） | 双击 `启动本地编译服务-便携.bat` 直接可用 |
+| D Docker/NAS | Docker（Linux） | `docker compose up -d --build` → `curl http://<ip>:8899/api/ping` 中 `cubecltOk:true` 且 `canFlash:false`；编译产物经 `/api/download?name=<工程名>&ext=hex|bin|elf` 下载到电脑烧录 |
 
 ## 1. 环境检测（幂等，先全跑一遍）
 

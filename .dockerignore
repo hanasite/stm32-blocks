@@ -1,0 +1,12 @@
+.git
+.gitignore
+.github
+local-builds
+env
+docs
+tests
+node_modules
+**/build
+*.log
+Thumbs.db
+desktop.ini

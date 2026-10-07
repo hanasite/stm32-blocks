@@ -79,6 +79,9 @@ dialog { border: 0; border-radius: 12px; padding: 18px; min-width: 340px; }
 #btn-build:disabled, #btn-flash:disabled { background: #cbd5e1; cursor: not-allowed; }
 #log-dialog { min-width: 560px; max-width: 82vw; }
 #log-view { background: #0f172a; color: #e2e8f0; padding: 10px 12px; border-radius: 8px; max-height: 55vh; min-width: 520px; overflow: auto; font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
+#log-actions { display: flex; gap: 8px; margin-top: 8px; }
+#log-actions a { flex: 1; text-align: center; background: #0d9488; color: #fff; border-radius: 8px; padding: 9px 10px; font-size: 13px; text-decoration: none; }
+#log-actions a:hover { background: #0f766e; }
 
 /* 新手接线帮助 */
 #btn-help { border: 1px solid #cbd5e1; background: #fff; border-radius: 8px; padding: 7px 12px; cursor: pointer; font-size: 14px; white-space: nowrap; }

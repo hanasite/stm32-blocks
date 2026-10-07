@@ -17,6 +17,8 @@ test("本地服务：ping / 静态页 / 目录穿越防护", async () => {
     const ping = await (await fetch(base + "/api/ping")).json();
     assert.equal(ping.ok, true);
     assert.equal(typeof ping.node, "string");
+    assert.equal(typeof ping.canFlash, "boolean");
+    assert.equal(typeof ping.cubecltOk, "boolean");
     const html = await (await fetch(base + "/")).text();
     assert.ok(html.includes("STM32 积木工坊"));
     const js = await fetch(base + "/js/app.js");
@@ -48,4 +50,20 @@ test("本地服务：build API 真编译（含中文工程名）", { skip: hasCu
   const elf = path.join(ROOT, "local-builds", "测试-桥", "build", "firmware.elf");
   assert.ok(fs.existsSync(elf), "firmware.elf 应存在: " + elf);
   fs.rmSync(path.join(ROOT, "local-builds", "测试-桥"), { recursive: true, force: true });
+});
+
+test("download API：不存在的产物返回 404 JSON", async () => {
+  const srv = createBridge({ port: 0 });
+  await srv.ready;
+  const base = "http://127.0.0.1:" + srv.port;
+  try {
+    const r = await fetch(base + "/api/download?name=%E4%B8%8D%E5%AD%98%E5%9C%A8&ext=hex");
+    assert.equal(r.status, 404);
+    const j = await r.json();
+    assert.equal(j.ok, false);
+    const bad = await fetch(base + "/api/download?name=x&ext=exe");
+    assert.equal(bad.status, 400);
+  } finally {
+    await srv.close();
+  }
 });

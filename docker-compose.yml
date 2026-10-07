@@ -1,0 +1,9 @@
+services:
+  stm32-blocks:
+    build: .
+    container_name: stm32-blocks
+    ports:
+      - "8899:8899"
+    volumes:
+      - ./local-builds:/app/local-builds
+    restart: unless-stopped

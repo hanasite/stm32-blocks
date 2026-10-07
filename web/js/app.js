@@ -138,8 +138,22 @@
           var b = document.getElementById(id);
           if (b) { b.classList.remove("hidden"); b.disabled = !lastValid; }
         });
+        if (j.canFlash === false) {   /* NAS/容器模式：没有烧录器，只留「编译」+ 下载固件 */
+          var bf = document.getElementById("btn-flash");
+          if (bf) { bf.classList.add("hidden"); }
+        }
       })
       .catch(function () { /* 没有本地服务：静默保持隐藏 */ });
+  }
+
+  function setDownloadLinks(name) {
+    var box = document.getElementById("log-actions");
+    var hex = document.getElementById("dl-hex");
+    var bin = document.getElementById("dl-bin");
+    if (!box || !hex || !bin) { return; }
+    hex.href = BRIDGE + "/api/download?name=" + encodeURIComponent(name) + "&ext=hex";
+    bin.href = BRIDGE + "/api/download?name=" + encodeURIComponent(name) + "&ext=bin";
+    box.classList.remove("hidden");
   }
 
   function runBridge(kind) {
@@ -149,6 +163,8 @@
     var view = document.getElementById("log-view");
     title.textContent = kind === "flash" ? "编译并烧录中…（通常 5～15 秒）" : "编译中…（通常 3～10 秒）";
     view.textContent = "正在调用本机工具链…";
+    var actions = document.getElementById("log-actions");
+    if (actions) { actions.classList.add("hidden"); }
     if (dlg && !dlg.open) { dlg.showModal(); }
     bridgeFetch("/api/build", { name: name, code: Codegen.generate(project) })
       .then(function (b) {
@@ -157,6 +173,7 @@
           view.textContent = b.log || "（无日志）";
           return null;
         }
+        setDownloadLinks(name);   /* 编译成功 → 提供 hex/bin 下载（远程编译、本地烧录） */
         if (kind !== "flash") {
           title.textContent = "✅ 编译成功（" + b.secs + "s）";
           view.textContent = "产物目录：" + b.dir + "\n" + (b.log || "").split("\n").slice(-8).join("\n");

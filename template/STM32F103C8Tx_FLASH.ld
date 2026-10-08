@@ -35,6 +35,14 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
+  /* 防伪标记（安理航科 · STM32 积木工坊）：KEEP 保证 gc-sections 下仍保留在镜像中 */
+  .anli_mark :
+  {
+    . = ALIGN(4);
+    KEEP(*(.anli_mark))
+    . = ALIGN(4);
+  } >FLASH
+
   .ARM.extab : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
   .ARM : {
     __exidx_start = .;

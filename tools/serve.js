@@ -7,7 +7,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
-const { ROOT, TEMPLATE, CUBECLT, EXE, HAS_CUBECLT, cubecltEnv, copyTemplate, runBuild, cmakePath, gccPath, programmerPath, canFlash } = require("./lib/project-build.js");
+const { ROOT, TEMPLATE, CUBECLT, EXE, HAS_CUBECLT, cubecltEnv, copyTemplate, runBuild, cmakePath, gccPath, programmerPath, stflashPath, canFlash } = require("./lib/project-build.js");
 
 const WEB = path.join(ROOT, "web");
 const LOCAL_BUILDS = path.join(ROOT, "local-builds");
@@ -107,20 +107,35 @@ function doFlash(name) {
   const t0 = Date.now();
   const dir = path.join(LOCAL_BUILDS, safeName(name));
   const elf = path.join(dir, "build", "firmware.elf");
+  const bin = path.join(dir, "build", "firmware.bin");
   const done = (ok, log) => ({ ok, log: trimLog(log), secs: +((Date.now() - t0) / 1000).toFixed(1) });
   if (!fs.existsSync(elf)) { return done(false, "没有找到编译产物：请先点「编译」，再点「编译并烧录」。"); }
   if (!canFlash()) { return done(false, "当前没有可用的烧录器（NAS/容器模式）：请在编译成功后下载 .hex / .bin 到电脑，用 STM32CubeProgrammer 烧录。"); }
-  const cli = programmerPath();
+
   const env = cubecltEnv();
-  const r1 = spawnSync(cli, ["-c", "port=SWD", "-w", elf, "-v", "-rst"], { cwd: "C:\\", env, encoding: "utf8", shell: false });
-  let log = (r1.stdout || "") + (r1.stderr || "");
-  let ok = r1.status === 0;
-  if (ok) {
-    const r2 = spawnSync(cli, ["-c", "port=SWD", "-run"], { cwd: "C:\\", env, encoding: "utf8", shell: false });
-    log += (r2.stdout || "") + (r2.stderr || "");
-    ok = r2.status === 0;
+  let log = "";
+  let ok = false;
+
+  if (fs.existsSync(programmerPath())) {
+    /* Windows / 有 CubeCLT：STM32CubeProgrammer CLI */
+    const cli = programmerPath();
+    const r1 = spawnSync(cli, ["-c", "port=SWD", "-w", elf, "-v", "-rst"], { cwd: "C:\\", env, encoding: "utf8", shell: false });
+    log = (r1.stdout || "") + (r1.stderr || "");
+    ok = r1.status === 0;
+    if (ok) {
+      const r2 = spawnSync(cli, ["-c", "port=SWD", "-run"], { cwd: "C:\\", env, encoding: "utf8", shell: false });
+      log += (r2.stdout || "") + (r2.stderr || "");
+      ok = r2.status === 0;
+    }
+  } else {
+    /* Linux（树莓派等）：st-flash（stlink-tools 包），写入 bin 到 0x08000000 并复位运行 */
+    if (!fs.existsSync(bin)) { return done(false, "没找到 firmware.bin，请先点「编译」。"); }
+    const r = spawnSync(stflashPath(), ["--reset", "write", bin, "0x8000000"], { cwd: dir, env, encoding: "utf8", shell: false });
+    log = (r.stdout || "") + (r.stderr || "");
+    ok = r.status === 0;
   }
-  if (!ok && /no st-?link|not connected|no device|error/i.test(log)) {
+
+  if (!ok && /no st-?link|not connected|no device|could not find|couldn't find|libusb|unable to find|error/i.test(log)) {
     log += "\n（提示：若未检测到 ST-Link，检查 USB 是否插好、是否被其它调试会话占用）";
   }
   return done(ok, log);

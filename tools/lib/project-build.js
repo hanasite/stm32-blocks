@@ -25,7 +25,15 @@ const HAS_CUBECLT = fs.existsSync(CUBECLT_CMAKE);
 function cmakePath() { return HAS_CUBECLT ? CUBECLT_CMAKE : "cmake" + EXE; }
 function gccPath() { return HAS_CUBECLT ? path.join(CUBECLT, "GNU-tools-for-STM32", "bin", "arm-none-eabi-gcc" + EXE) : "arm-none-eabi-gcc" + EXE; }
 function programmerPath() { return path.join(CUBECLT, "STM32CubeProgrammer", "bin", "STM32_Programmer_CLI" + EXE); }
-function canFlash() { return fs.existsSync(programmerPath()); }
+function stflashPath() { return "st-flash" + EXE; }   /* Linux（树莓派等）：stlink-tools 包 */
+let stflashOkCache = null;
+function hasStflash() {
+  if (stflashOkCache === null) {
+    stflashOkCache = spawnSync(stflashPath(), ["--version"], { encoding: "utf8", shell: false }).status === 0;
+  }
+  return stflashOkCache;
+}
+function canFlash() { return fs.existsSync(programmerPath()) || hasStflash(); }
 
 const EXCLUDES = ["build", ".git", ".vscode-server"].map((d) => path.join(TEMPLATE, d));
 function templateFilter(src) {
@@ -66,4 +74,4 @@ function runBuild(projectDir) {
   return { ok: r2.status === 0, log, stage: "build" };
 }
 
-module.exports = { ROOT, TEMPLATE, CUBECLT, EXE, HAS_CUBECLT, cubecltEnv, copyTemplate, runBuild, cmakePath, gccPath, programmerPath, canFlash };
+module.exports = { ROOT, TEMPLATE, CUBECLT, EXE, HAS_CUBECLT, cubecltEnv, copyTemplate, runBuild, cmakePath, gccPath, programmerPath, stflashPath, canFlash };

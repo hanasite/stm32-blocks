@@ -49,6 +49,7 @@ WebUI 就是一个网页，**双击对应文件就开**：
 | 有便携 U 盘 | U 盘根目录的 **`启动本地编译服务-便携.bat`** | 同上，零安装 |
 | 没装任何东西，只想先玩 | `web` 文件夹里的 **`index.html`** | 浏览器直接打开页面（离线模式：拼积木/看代码/示例/接线帮助都能用，编译按钮自动隐藏） |
 | 放 NAS/服务器上编译 | 仓库根目录 `docker compose up -d --build`，浏览器开 `http://<NAS的IP>:8899` | 远程编译，**下载 hex/bin 到电脑烧录**（无 ST-Link，烧录按钮自动隐藏） |
+| 树莓派/Linux 裸机 | `apt install nodejs cmake ninja-build gcc-arm-none-eabi libnewlib-arm-none-eabi` 后跑 `启动本地编译服务-树莓派.sh` | 同上；手机/电脑同一 WiFi 打开 `http://<树莓派IP>:8899` |
 
 > 浏览器没有自动弹出？手动在地址栏输入 **`http://127.0.0.1:8899`**。
 > 以后再想用：重复第 1 步即可；关掉那个命令行窗口 = 关闭工具。
